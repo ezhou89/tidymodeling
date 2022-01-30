@@ -1,0 +1,17 @@
+---
+title: "2022JAN25 - Tidy Tuesday - Board Games"
+author: "Eugene Zhou"
+date: "1/30/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidytuesdayR)
+df <- tidytuesdayR::tt_load('2022-01-25')
+View(df)
+```
+
