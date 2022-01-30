@@ -1,0 +1,32 @@
+---
+title: "TMWR - Ch 5"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+getwd()
+```
+
+```{r}
+# load tidymodels package
+library(tidymodels)
+
+# handle package conflicts
+tidymodels_prefer()
+
+# load ames data
+data(ames)
+```
+
+```{r}
+# log transform the data set
+ames <- ames %>%
+  mutate(Sale_Price = log10(Sale_Price))
+```
+
+
+

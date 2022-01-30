@@ -1,0 +1,67 @@
+---
+title: "TMWR - Ch 4"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+getwd()
+```
+
+```{r}
+# load tidymodels package
+library(tidymodels)
+
+# handle package conflicts
+tidymodels_prefer()
+
+# load ames data
+data(ames)
+```
+
+```{r}
+# check data distribution
+
+ames %>%
+  ggplot() + 
+  aes(x = Sale_Price) + 
+  geom_histogram(bins = 50, col = "white")
+```
+data is right skewed
+
+```{r}
+# log transform data to stabilize the variance
+
+ames %>%
+  ggplot() + 
+  aes(x = Sale_Price) + 
+  geom_histogram(bins = 50, col = "white") +
+  scale_x_log10()
+```
+
+```{r}
+# log transform the data set
+ames <- ames %>%
+  mutate(Sale_Price = log10(Sale_Price))
+```
+
+```{r}
+ames %>%
+  ggplot() + 
+  aes(x = Longitude, y = Latitude, color = Neighborhood) + 
+  geom_point() + 
+  coord_map() + 
+  theme(legend.position = "bottom")
+```
+
+
+
+
+
+
+
+
+
