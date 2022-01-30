@@ -1,0 +1,420 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(deuce)
+library(tidymodels)
+```
+
+```{r}
+data("atp_matches")
+
+atp_df <- atp_matches %>%
+  filter(year(tourney_start_date) > 1990)
+```
+
+
+```{r}
+won <- atp_df %>%
+  filter(winner_name == "Roger Federer") %>%
+  select(-tourney_id, -tourney_name, -draw_size, -match_num, -winner_id, -winner_seed, -winner_entry, -winner_hand, -winner_ioc, -loser_id, -loser_seed, -loser_entry, -match_id, -tourney_start_date) %>%
+  rename(name = winner_name, 
+         rf_ht = winner_ht, 
+         rf_age = winner_age, 
+         rf_rank = winner_rank, 
+         rf_winner_rank_points = winner_rank_points, 
+         rf_ace = w_ace, 
+         rf_doublefault = w_df, 
+         rf_servicepts = w_svpt, 
+         rf_1stserveIn = w_1stIn, 
+         rf_1stserveWon = w_1stWon, 
+         rf_2ndserveWon = w_2ndWon, 
+         rf_ServiceGames = w_SvGms, 
+         rf_bpSaved = w_bpSaved, 
+         rf_bpFaced = w_bpFaced, 
+         rf_set1 = W1, 
+         rf_set2 = W2, 
+         rf_set3 = W3, 
+         rf_set4 = W4, 
+         rf_set5 = W5, 
+         rf_TB1 = WTB1, 
+         rf_TB2 = WTB2, 
+         rf_TB3 = WTB3, 
+         rf_TB4 = WTB4, 
+         rf_TB5 = WTB5, 
+         opponent_name = loser_name, 
+         opponent_ht = loser_ht, 
+         opponent_age = loser_age, 
+         opponent_rank = loser_rank, 
+         opponent_winner_rank_points = loser_rank_points, 
+         opponent_ace = l_ace, 
+         opponent_doublefault = l_df, 
+         opponent_servicepts = l_svpt, 
+         opponent_1stserveIn = l_1stIn, 
+         opponent_1stserveWon = l_1stWon, 
+         opponent_2ndserveWon = l_2ndWon, 
+         opponent_ServiceGames = l_SvGms, 
+         opponent_bpSaved = l_bpSaved, 
+         opponent_bpFaced = l_bpFaced, 
+         opponent_set1 = L1, 
+         opponent_set2 = L2, 
+         opponent_set3 = L3, 
+         opponent_set4 = L4, 
+         opponent_set5 = L5, 
+         opponent_TB1 = LTB1, 
+         opponent_TB2 = LTB2, 
+         opponent_TB3 = LTB3, 
+         opponent_TB4 = LTB4, 
+         opponent_TB5 = LTB5) %>%
+  mutate(win = as_factor(1))
+
+loss <- atp_df %>%
+  filter(loser_name == "Roger Federer") %>%
+  select(-tourney_id, -tourney_name, -draw_size, -match_num, -winner_id, -winner_seed, -winner_entry, -loser_id, -loser_seed, -loser_entry, -loser_hand, -loser_ioc, -match_id, -tourney_start_date) %>%
+  rename(name = loser_name, 
+         rf_ht = loser_ht, 
+         rf_age = loser_age, 
+         rf_rank = loser_rank, 
+         rf_winner_rank_points = loser_rank_points, 
+         rf_ace = l_ace, 
+         rf_doublefault = l_df, 
+         rf_servicepts = l_svpt, 
+         rf_1stserveIn = l_1stIn, 
+         rf_1stserveWon = l_1stWon, 
+         rf_2ndserveWon = l_2ndWon, 
+         rf_ServiceGames = l_SvGms, 
+         rf_bpSaved = l_bpSaved, 
+         rf_bpFaced = l_bpFaced, 
+         rf_set1 = L1, 
+         rf_set2 = L2, 
+         rf_set3 = L3, 
+         rf_set4 = L4, 
+         rf_set5 = L5, 
+         rf_TB1 = LTB1, 
+         rf_TB2 = LTB2, 
+         rf_TB3 = LTB3, 
+         rf_TB4 = LTB4, 
+         rf_TB5 = LTB5, 
+         opponent_name = winner_name, 
+         opponent_ht = winner_ht, 
+         opponent_age = winner_age, 
+         opponent_rank = winner_rank, 
+         opponent_winner_rank_points = winner_rank_points, 
+         opponent_ace = w_ace, 
+         opponent_doublefault = w_df, 
+         opponent_servicepts = w_svpt, 
+         opponent_1stserveIn = w_1stIn, 
+         opponent_1stserveWon = w_1stWon, 
+         opponent_2ndserveWon = w_2ndWon, 
+         opponent_ServiceGames = w_SvGms, 
+         opponent_bpSaved = w_bpSaved, 
+         opponent_bpFaced = w_bpFaced, 
+         opponent_set1 = W1, 
+         opponent_set2 = W2, 
+         opponent_set3 = W3, 
+         opponent_set4 = W4, 
+         opponent_set5 = W5, 
+         opponent_TB1 = WTB1, 
+         opponent_TB2 = WTB2, 
+         opponent_TB3 = WTB3, 
+         opponent_TB4 = WTB4, 
+         opponent_TB5 = WTB5) %>%
+  mutate(win = as_factor(0))
+
+```
+
+```{r}
+rf_df <- full_join(won, loss)
+rf_df <- rf_df %>%
+  mutate(rf_ht, 
+         rf_age, 
+         rf_rank, 
+         rf_winner_rank_points, 
+         rf_ace, 
+         rf_doublefault,
+         rf_servicepts, 
+         rf_1stserveIn, 
+         rf_1stserveWon, 
+         rf_2ndserveWon,
+         rf_ServiceGames,
+         rf_bpSaved,
+         rf_bpFaced,
+         rf_set1,
+         rf_set2,
+         rf_set3,
+         rf_set4,
+         rf_set5,
+         rf_TB1,
+         rf_TB2,
+         rf_TB3,
+         rf_TB4,
+         rf_TB5,
+         opponent_name, 
+         opponent_ht,
+         opponent_age, 
+         opponent_rank, 
+         opponent_winner_rank_points,
+         opponent_ace,
+         opponent_doublefault, 
+         opponent_servicepts, 
+         opponent_1stserveIn,
+         opponent_1stserveWon,
+         opponent_2ndserveWon,
+         opponent_ServiceGames, 
+         opponent_bpSaved,
+         opponent_bpFaced,
+         opponent_set1,
+         opponent_set2,
+         opponent_set3,  
+         opponent_set4,  
+         opponent_set5,  
+         opponent_TB1, 
+         opponent_TB2,  
+         opponent_TB3,  
+         opponent_TB4,  
+         opponent_TB5) %>%
+  select(-name, -rf_ht, -rf_set4, -rf_set5, -rf_TB1, -rf_TB2, -rf_TB3, -rf_TB4, -rf_TB5, -opponent_set4, -opponent_set5, -opponent_TB1, -opponent_TB2, -opponent_TB3, -opponent_TB4, -opponent_TB5, -Retirement, -score, -opponent_name)
+
+rf_df[is.na(rf_df[, 1:ncol(rf_df)])] <- 0
+```
+
+```{r}
+rf_df %>%
+  group_by(round(rf_age)) %>%
+  ggplot() + 
+  aes(x = round(rf_age), fill = forcats::fct_rev(win)) + 
+  geom_bar(position = "fill") + 
+  labs(title = "Roger Federer Win/Loss by Age", 
+       x = "Age",
+       y = "Win Ratio") + 
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") + 
+  theme(legend.position = "none")
+```
+
+```{r}
+rf_df %>%
+  group_by(round(rf_age)) %>%
+  ggplot() + 
+  aes(x = round(rf_age)) + 
+  geom_bar() + 
+  labs(title = "Federer Matches Played by Age", 
+       x = "Age") + 
+  theme(legend.position = "none")
+```
+
+```{r}
+rf_split <- rf_df %>%
+  initial_split(strata = win)
+
+rf_train <- training(rf_split)
+rf_test <- testing(rf_split)
+```
+
+```{r}
+# getting data ready for modeling
+# modeling diversity against all other features
+
+rf_rec <- recipe(win ~. , data = rf_train) %>%
+  
+  #filter coorelated variables
+  step_corr(all_numeric()) %>%
+  
+  #convert nominal variables to dummy so all variables are now numeric
+  step_dummy(all_nominal(), -all_outcomes()) %>%
+  
+  #remove variables with zero variance 
+  step_zv(all_numeric()) %>%
+  
+  #center and scale data
+  step_normalize(all_numeric()) %>%
+  
+  #train model using data
+  prep()
+```
+
+```{r}
+#observe data after modeling using juice()
+juice(rf_rec)
+```
+
+```{r}
+#bake applies model recipe to data
+bake(rf_rec, new_data = rf_train)
+```
+
+```{r}
+#logistic regression
+glm_spec <- logistic_reg() %>%
+  set_engine("glm")
+
+glm_fit <- glm_spec %>%
+  fit(win ~ ., data = juice(rf_rec))
+
+glm_fit
+```
+
+```{r}
+folds <- vfold_cv(juice(rf_rec), strata = win)
+
+glm_rs <- glm_spec %>%
+  fit_resamples(win ~ (.)^2, 
+                folds,
+                metrics = metric_set(roc_auc, sens, spec), 
+                control = control_resamples(save_pred = TRUE))
+```
+
+```{r}
+glm_fit %>%
+  predict(new_data = bake(test_rec, new_data = rf_test), 
+          type = "prob") %>%
+  mutate(truth = model_test$win) %>%
+  roc_auc(truth, .pred_1)
+```
+
+```{r}
+glm_rs
+```
+
+```{r}
+#cross validation estimates
+glm_rs %>% unnest(.metrics)
+```
+
+```{r}
+#cross validation predictions
+glm_rs %>% unnest(.predictions)
+```
+
+```{r}
+#glm model metrics
+glm_rs %>% collect_metrics()
+```
+
+```{r}
+#k-nearest neighbors classification
+knn_spec <- nearest_neighbor(neighbors = 2) %>%
+  set_engine("kknn") %>%
+  set_mode("classification")
+
+knn_fit <- knn_spec %>%
+  fit(win ~ ., data = juice(rf_rec))
+
+knn_fit
+```
+
+```{r}
+#decision tree classification
+tree_spec <- decision_tree() %>%
+  set_engine("rpart") %>%
+  set_mode("classification")
+
+tree_fit <- tree_spec %>%
+  fit(win ~ ., data = juice(rf_rec))
+
+tree_fit
+```
+
+```{r}
+#knn model cross validation
+knn_rs <- knn_spec %>%
+  fit_resamples(win ~ ., 
+                folds,
+                metrics = metric_set(roc_auc, sens, spec), 
+                control = control_resamples(save_pred = TRUE))
+```
+
+```{r}
+knn_rs %>% collect_metrics()
+```
+
+```{r}
+#decision tree cross validation
+tree_rs <- tree_spec %>%
+  fit_resamples(win ~ ., 
+                folds,
+                metrics = metric_set(roc_auc, sens, spec), 
+                control = control_resamples(save_pred = TRUE))
+```
+
+```{r}
+tree_rs %>% collect_metrics()
+```
+
+```{r}
+#make roc curve
+glm_rs %>%
+  unnest(.predictions) %>%
+  mutate(model = "glm") %>%
+  bind_rows(tree_rs %>%
+              unnest(.predictions) %>%
+              mutate(model = "tree")) %>%
+  bind_rows(knn_rs %>% unnest(.predictions) %>%
+              mutate(model = "knn")) %>%
+  group_by(model) %>%
+  roc_curve(win, .pred_1) %>%
+  autoplot()
+```
+
+## compare model against test data
+
+```{r}
+glm_fit %>%
+  predict(new_data = bake(rf_rec, new_data = rf_test), 
+          type = "prob") %>%
+  mutate(truth = model_test$win) %>%
+  roc_auc(truth, .pred_1)
+```
+
+```{r}
+knn_fit %>%
+  predict(new_data = bake(rf_rec, new_data = rf_test), 
+          type = "prob") %>%
+  mutate(truth = model_test$win) %>%
+  roc_auc(truth, .pred_1)
+```
+
+```{r}
+tree_fit %>%
+  predict(new_data = bake(test_rec, new_data = model_test), 
+          type = "prob") %>%
+  mutate(truth = model_test$win) %>%
+  roc_auc(truth, .pred_1)
+```
+
+```{r}
+glm_fit$fit
+summary(glm_fit)
+```
+
+```{r}
+knn_fit$fit
+summary(knn_fit)
+
+```
+
+```{r}
+tree_fit$fit
+summary(tree_fit)
+tree_fit$fit %>% rpart.plot()
+```
+
+```{r}
+sim_data <- model_df
+head(sim_data)
+
+sim_data$jj_rank <- 1
+sim_data$jj_age <- 28
+sim_data$jj_doublefault <- 0
+
+newFit <- predict(glm_fit, new_data = sim_data)
+
+sum(newFit == 1)/nrow(newFit)
+```
+
