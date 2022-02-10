@@ -1,0 +1,199 @@
+---
+title: "Roger Federer Wins"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(deuce)
+library(tidymodels)
+```
+
+```{r}
+data("atp_matches")
+
+atp_df <- atp_matches %>%
+  filter(year(tourney_start_date) > 1990)
+```
+
+
+```{r}
+won <- atp_df %>%
+  filter(winner_name == "Roger Federer") %>%
+  select(-tourney_id, -tourney_name, -draw_size, -match_num, -winner_id, -winner_seed, -winner_entry, -winner_hand, -winner_ioc, -loser_id, -loser_seed, -loser_entry, -match_id, -tourney_start_date) %>%
+  rename(name = winner_name, 
+         rf_ht = winner_ht, 
+         rf_age = winner_age, 
+         rf_rank = winner_rank, 
+         rf_winner_rank_points = winner_rank_points, 
+         rf_ace = w_ace, 
+         rf_doublefault = w_df, 
+         rf_servicepts = w_svpt, 
+         rf_1stserveIn = w_1stIn, 
+         rf_1stserveWon = w_1stWon, 
+         rf_2ndserveWon = w_2ndWon, 
+         rf_ServiceGames = w_SvGms, 
+         rf_bpSaved = w_bpSaved, 
+         rf_bpFaced = w_bpFaced, 
+         rf_set1 = W1, 
+         rf_set2 = W2, 
+         rf_set3 = W3, 
+         rf_set4 = W4, 
+         rf_set5 = W5, 
+         rf_TB1 = WTB1, 
+         rf_TB2 = WTB2, 
+         rf_TB3 = WTB3, 
+         rf_TB4 = WTB4, 
+         rf_TB5 = WTB5, 
+         opponent_name = loser_name, 
+         opponent_ht = loser_ht, 
+         opponent_age = loser_age, 
+         opponent_rank = loser_rank, 
+         opponent_winner_rank_points = loser_rank_points, 
+         opponent_ace = l_ace, 
+         opponent_doublefault = l_df, 
+         opponent_servicepts = l_svpt, 
+         opponent_1stserveIn = l_1stIn, 
+         opponent_1stserveWon = l_1stWon, 
+         opponent_2ndserveWon = l_2ndWon, 
+         opponent_ServiceGames = l_SvGms, 
+         opponent_bpSaved = l_bpSaved, 
+         opponent_bpFaced = l_bpFaced, 
+         opponent_set1 = L1, 
+         opponent_set2 = L2, 
+         opponent_set3 = L3, 
+         opponent_set4 = L4, 
+         opponent_set5 = L5, 
+         opponent_TB1 = LTB1, 
+         opponent_TB2 = LTB2, 
+         opponent_TB3 = LTB3, 
+         opponent_TB4 = LTB4, 
+         opponent_TB5 = LTB5) %>%
+  mutate(win = as_factor(1))
+
+loss <- atp_df %>%
+  filter(loser_name == "Roger Federer") %>%
+  select(-tourney_id, -tourney_name, -draw_size, -match_num, -winner_id, -winner_seed, -winner_entry, -loser_id, -loser_seed, -loser_entry, -loser_hand, -loser_ioc, -match_id, -tourney_start_date) %>%
+  rename(name = loser_name, 
+         rf_ht = loser_ht, 
+         rf_age = loser_age, 
+         rf_rank = loser_rank, 
+         rf_winner_rank_points = loser_rank_points, 
+         rf_ace = l_ace, 
+         rf_doublefault = l_df, 
+         rf_servicepts = l_svpt, 
+         rf_1stserveIn = l_1stIn, 
+         rf_1stserveWon = l_1stWon, 
+         rf_2ndserveWon = l_2ndWon, 
+         rf_ServiceGames = l_SvGms, 
+         rf_bpSaved = l_bpSaved, 
+         rf_bpFaced = l_bpFaced, 
+         rf_set1 = L1, 
+         rf_set2 = L2, 
+         rf_set3 = L3, 
+         rf_set4 = L4, 
+         rf_set5 = L5, 
+         rf_TB1 = LTB1, 
+         rf_TB2 = LTB2, 
+         rf_TB3 = LTB3, 
+         rf_TB4 = LTB4, 
+         rf_TB5 = LTB5, 
+         opponent_name = winner_name, 
+         opponent_ht = winner_ht, 
+         opponent_age = winner_age, 
+         opponent_rank = winner_rank, 
+         opponent_winner_rank_points = winner_rank_points, 
+         opponent_ace = w_ace, 
+         opponent_doublefault = w_df, 
+         opponent_servicepts = w_svpt, 
+         opponent_1stserveIn = w_1stIn, 
+         opponent_1stserveWon = w_1stWon, 
+         opponent_2ndserveWon = w_2ndWon, 
+         opponent_ServiceGames = w_SvGms, 
+         opponent_bpSaved = w_bpSaved, 
+         opponent_bpFaced = w_bpFaced, 
+         opponent_set1 = W1, 
+         opponent_set2 = W2, 
+         opponent_set3 = W3, 
+         opponent_set4 = W4, 
+         opponent_set5 = W5, 
+         opponent_TB1 = WTB1, 
+         opponent_TB2 = WTB2, 
+         opponent_TB3 = WTB3, 
+         opponent_TB4 = WTB4, 
+         opponent_TB5 = WTB5) %>%
+  mutate(win = as_factor(0))
+
+```
+
+```{r}
+rf_df <- full_join(won, loss)
+rf_df <- rf_df %>%
+  mutate(rf_ht, 
+         rf_age, 
+         rf_rank, 
+         rf_winner_rank_points, 
+         rf_ace, 
+         rf_doublefault,
+         rf_servicepts, 
+         rf_1stserveIn, 
+         rf_1stserveWon, 
+         rf_2ndserveWon,
+         rf_ServiceGames,
+         rf_bpSaved,
+         rf_bpFaced,
+         rf_set1,
+         rf_set2,
+         rf_set3,
+         rf_set4,
+         rf_set5,
+         rf_TB1,
+         rf_TB2,
+         rf_TB3,
+         rf_TB4,
+         rf_TB5,
+         opponent_name, 
+         opponent_ht,
+         opponent_age, 
+         opponent_rank, 
+         opponent_winner_rank_points,
+         opponent_ace,
+         opponent_doublefault, 
+         opponent_servicepts, 
+         opponent_1stserveIn,
+         opponent_1stserveWon,
+         opponent_2ndserveWon,
+         opponent_ServiceGames, 
+         opponent_bpSaved,
+         opponent_bpFaced,
+         opponent_set1,
+         opponent_set2,
+         opponent_set3,  
+         opponent_set4,  
+         opponent_set5,  
+         opponent_TB1, 
+         opponent_TB2,  
+         opponent_TB3,  
+         opponent_TB4,  
+         opponent_TB5) %>%
+  select(-name, -rf_ht, -rf_set4, -rf_set5, -rf_TB1, -rf_TB2, -rf_TB3, -rf_TB4, -rf_TB5, -opponent_set4, -opponent_set5, -opponent_TB1, -opponent_TB2, -opponent_TB3, -opponent_TB4, -opponent_TB5, -Retirement, -score, -opponent_name)
+
+rf_df[is.na(rf_df[, 1:ncol(rf_df)])] <- 0
+```
+
+```{r}
+rf_df %>%
+  group_by(round(rf_age)) %>%
+  ggplot() + 
+  aes(x = round(rf_age), fill = forcats::fct_rev(win)) + 
+  geom_bar(position = "fill") + 
+  labs(title = "Roger Federer Win/Loss by Age", 
+       x = "Age",
+       y = "Win Ratio") + 
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") + 
+  theme(legend.position = "none")
+```
