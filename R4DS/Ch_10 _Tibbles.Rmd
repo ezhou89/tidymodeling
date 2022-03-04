@@ -1,0 +1,63 @@
+---
+title: "Ch 10 - Tibbles"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+coerce data frame to tibble using as_tibble function
+```{r}
+as_tibble(iris)
+```
+
+creating tibbles
+```{r}
+tibble(
+  x = 1:5, 
+  y = 1, 
+  z = x^2 + 7
+)
+```
+
+tibbles can use non-traditional R naming conventions
+```{r}
+tb <- tibble(
+  `:)` = "smile", 
+  ` ` = "space", 
+  `2000` = "number"
+)
+
+tb
+```
+
+tribble allows for data entry into R
+```{r}
+## column headings start with ~ symbol
+## separate with , 
+## delineate header with # symbol for style. optional
+tribble(
+  ~x, ~y, ~z, 
+  #--|--|----
+  "a", 2, 3.6, 
+  "b", 1, 8.5
+)
+```
+
+Exercises
+
+```{r}
+mtcars
+```
+
+```{r}
+as_tibble(mtcars)
+```
+
