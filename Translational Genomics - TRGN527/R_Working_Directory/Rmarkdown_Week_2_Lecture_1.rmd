@@ -1,0 +1,54 @@
+---
+title: "Rmarkdown_Week_2_Lecture_1"
+author: "EIVV"
+date: "12/27/2018"
+output: html_document
+---
+
+# Computing basic statistics in R
+# With the following numbers: 1,1,2,3,4,5,6,7,8,20,22,35
+# Calculate the mean, median, standard deviation, variance and mode.
+```{R}
+#Create a vector with numbers
+x <- c(1,1,2,3,4,5,6,7,8,20,22,35)
+```
+
+#Calculating the mean
+```{R}
+mean(x)
+```
+
+#Calculating the median
+```{R}
+median(x)
+```
+
+#Calculating the Standard Deviation
+```{R}
+sd(x)
+```
+
+#Calculating the variance
+```{R}
+var(x)
+```
+
+#Calculating the mode
+```{R}
+# Creating a function named "getmode"
+getmode <- function(x) {
+  uniqx <- unique(x)   
+  uniqx[which.max(tabulate(match(x, uniqx)))]}
+
+# Creating a vector with numbers
+x <- c(1,1,2,3,4,5,6,7,8,20,22,35)
+# Calculating the mode
+
+calculating_mode <- getmode(x)
+calculating_mode
+```
+
+
+
+
+

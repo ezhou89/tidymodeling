@@ -1,0 +1,249 @@
+---
+title: "Rmarkdown_TRGN599_Week_6_Lecture_1_Case_Study_2_Part_1"
+author: "Enrique I. Velazquez Villarreal, MD, PhD, MPH, MS"
+date: "2/7/2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Accessing data from CEL files
+```{R}
+getwd()
+# Where the CEL files are - Type the line below directly in your R Console.
+setwd('/Users/eugenezhou/OneDrive - University of Southern California/Class/TRGN527/R_Working_Directory')
+```
+
+# Installing Affy package ()
+```{R}
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+#     install.packages("BiocManager")
+ BiocManager::install("affy")
+```
+
+# Using Affy Package
+```{R}
+library(affy)
+TRGN599_data<-ReadAffy()
+
+#Installing required package for Affy
+TRGN599_data
+```
+
+# Annotating Data
+```{R}
+annotation(TRGN599_data)
+```
+
+
+```{R}
+cdfName(TRGN599_data)
+```
+
+```{R}
+TRGN599_exp_des <- pData(TRGN599_data)
+TRGN599_exp_des$Genotype <- factor(rep(c("WT","dTsc1"),each=6))
+TRGN599_exp_des$Stimulation <- factor(rep(c("0h","4h"),6))
+TRGN599_exp_des
+```
+
+# Generating Image
+```{R}
+pData(TRGN599_data) <- TRGN599_exp_des
+image(TRGN599_data[,1])
+```
+
+# basic QC
+```{R}
+TRGN599_deg <- AffyRNAdeg(TRGN599_data)
+```
+
+# Summarizing Data
+```{R}
+summaryAffyRNAdeg(TRGN599_deg)
+```
+
+# Ploting Data
+```{R}
+plotAffyRNAdeg(TRGN599_deg)
+```
+
+# Installing affyQCReport
+```{R}
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+#     install.packages("BiocManager")
+# BiocManager::install("affyQCReport", version = "3.8")
+```
+
+# Using affyQCReport to generate a Correlation Plot
+```{R}
+library(affyQCReport)
+correlationPlot(TRGN599_data)
+```
+
+# Generating BorderQCs
+```{R}
+borderQC1(TRGN599_data)
+```
+
+
+# Normalization Process
+```{R}
+hist(TRGN599_data)
+```
+
+```{R}
+boxplot(log2(exprs(TRGN599_data)))
+```
+
+# Generating and expression set
+```{R}
+TRGN599_datrma<-rma(TRGN599_data)
+```
+
+```{R}
+TRGN599_datrma # this is an expression set
+```
+
+```{R}
+TRGN599_matexp<-exprs(TRGN599_datrma)
+par(mfrow=c(1,2))
+```
+
+# Generating Boxplots
+```{R}
+boxplot(log2(exprs(TRGN599_data)),main="TRGN599_Prior_normalizing_process normalization",ylab="log2-Intensity-")
+```
+
+```{R}
+boxplot(TRGN599_matexp,main="TRGN 599 - RMA DATA - Normalizaed")
+```
+
+# Generating MA plots
+```{R}
+par(mfrow=c(1,1))
+```
+
+#Comments: it could be use the 
+```{R}
+MAplot(TRGN599_datrma[,1:4],pairs=TRUE,plot.method="smoothScatter")
+```
+```{R}
+TRGN599_datmas <- mas5(TRGN599_data)
+```
+
+```{R}
+TRGN599_datmas
+```
+
+# Generating a PCAs for sample-grouping purposes
+# Installing affycoretools package
+```{R}
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+#     install.packages("BiocManager")
+# BiocManager::install("affycoretools", version = "3.8")
+```
+
+```{R}
+library(affycoretools)
+plotPCA(TRGN599_matexp, groups = as.numeric(pData(TRGN599_data)[,2]), groupnames = levels(pData(TRGN599_data)[,2]))
+
+```
+
+```{R}
+plotPCA(TRGN599_matexp, groups = as.numeric(pData(TRGN599_data)[,3]), groupnames = levels(pData(TRGN599_data)[,3]))
+```
+# Finding differentially expressed genes
+# Installing Limma package
+
+```{R}
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+#     install.packages("BiocManager")
+# BiocManager::install("limma", version = "3.8")
+```
+
+
+```{R}
+library(limma)
+genotype<- factor(pData(TRGN599_data)[,2] , levels = levels(pData(TRGN599_data)[,2]))
+stimul <- factor(pData(TRGN599_data)[,3] , levels = levels(pData(TRGN599_data)[,3]))
+TRGN599_design<- model.matrix(~genotype)
+```
+
+```{R}
+TRGN599_fit <-lmFit(TRGN599_matexp,TRGN599_design)
+TRGN599_fit
+```
+
+```{R}
+TRGN599_fit<-eBayes(TRGN599_fit)
+```
+
+```{R}
+TRGN599_dg_top_50 <- topTable(TRGN599_fit, coef = 2, adjust = "fdr", n = 50)
+```
+
+
+# Annotating Data
+#Comment: It can be used the mouse.annot <- read.delim("GPL11180-26917.txt",skip=16,row.names=1)
+
+```{R}
+TRGN599_mouse_annot <- read.table('/Users/eugenezhou/OneDrive - University of Southern California/Class/TRGN527/R_Working_Directory/TRGN599_selected_annotation.txt')
+TRGN599_sel_annot <- TRGN599_mouse_annot[row.names(TRGN599_dg_top_50),]
+```
+
+```{R}
+TRGN599_dg_top_50_annot <- cbind(TRGN599_dg_top_50,TRGN599_sel_annot)
+```
+
+# Generating a Table
+```{R}
+write.table(TRGN599_dg_top_50_annot[order(TRGN599_dg_top_50_annot$logFC),], "TRGN599_diff_genes.txt")
+```
+
+# Adjusting Pvales
+```{R}
+TRGN599_selected <- p.adjust(TRGN599_fit$p.value[, 2],method="fdr") <0.03
+```
+
+# Generating an expression Matrix
+```{R}
+TRGN599_matexp_gen <- TRGN599_matexp[TRGN599_selected,]
+dim(TRGN599_matexp_gen)
+```
+
+# Generating a heatmap
+```{R}
+heatmap(TRGN599_matexp_gen)
+```
+
+# Generating a Model-design
+```{R}
+TRGN599_design_1 <-  model.matrix(~stimul)
+TRGN599_fit_1 <-lmFit(TRGN599_matexp,TRGN599_design_1)
+TRGN599_fit_1<-eBayes(TRGN599_fit_1)
+```
+
+```{R}
+TRGN599_dg_top_50_stim <- topTable(TRGN599_fit_1, coef = 2, adjust = "fdr", n = 50) 
+TRGN599_sel_annot <- TRGN599_mouse_annot[row.names(TRGN599_dg_top_50_stim),]
+TRGN599_dg_top_50_stim_annot <- cbind(TRGN599_dg_top_50_stim,TRGN599_sel_annot)
+```
+
+# Generating a table with diff genes-stimulation
+```{R}
+write.table(TRGN599_dg_top_50_stim_annot[order(TRGN599_dg_top_50_stim_annot$logFC),],"TRGN599_diffgenes_stimulation.txt")
+```
+
+# Annotating first created table using Gene symbols
+```{R}
+TRGN599_dg_top_50_annot$Gene.Symbol
+```
+# Annotating second generated table - stimulation - using Gene symbols
+```{R}
+TRGN599_dg_top_50_stim_annot$Gene.Symbol
+```
+

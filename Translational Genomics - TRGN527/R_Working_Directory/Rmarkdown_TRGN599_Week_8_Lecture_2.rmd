@@ -1,0 +1,81 @@
+---
+title: "Rmarkdown_TRGN599_Week_8_Lecture_2"
+author: "Enrique I. Velazquez Villarreal, MD, PhD, MPH, MS"
+date: "2/27/2019"
+output: html_document
+---
+
+## R Markdown
+## Linear regression analysis
+
+## In this example we will model the relationship between percent body fat, siri, and height, using a simple linear regression model. 
+
+# Installing required packages
+# Making the data bodyfat available for analysis
+```{R}
+#install.packages("mfp", dependencies = TRUE)
+#install.packages("survival")
+library(mfp)
+data(bodyfat)
+```
+
+# Fitting the least-squares regression model
+```{R}
+fit <- lm(siri ~ height, data = bodyfat)
+```
+
+# fit object now stores all the output from the linear regression model
+# Get the estimates of the estimates of Alpha and Beta
+```{R}
+fit
+```
+
+# Summarizing data
+```{R}
+summary(fit)
+```
+
+# Checking all the information information contained in the fit object:
+```{R}
+names(fit)
+```
+
+# Accessing coefficients
+```{R}
+fit$coefficients
+```
+
+# Accesing the estimates for the first five people
+```{R}
+fit$fitted.values[1:5]
+```
+
+# Accesing the residuals of the first five people
+```{R}
+fit$residuals[1:5]
+```
+
+# Adding the least-squares line to the scatterplot is easy with the abline() function:
+```{R}
+plot(bodyfat$height, bodyfat$siri, main = "Scatterplot for Percent Body Fat by Height", xlab = "Height", ylab = "Percent Body Fat")
+abline(fit)
+```
+
+# Multiple linear regression model
+# We can also fit a multiple linear regression model to the bodyfat data using abdomen circumference and height as explanatory variables. 
+
+# Fitting a multiple linear regression model. 
+# Separing explanatory variables with plus signs.
+```{R}
+multReg <- lm(siri ~ height + abdomen, data = bodyfat)
+summary(multReg)
+```
+
+# Fitting a multiple linear regression model. 
+# To include the interaction term between height and abdomen in the model, 
+# We can specify the regression model as siri ∼ height * abdomen. 
+# In this case, R includes the main effects of the two variables automatically.
+```{R}
+multReg <- lm(siri ~ height * abdomen, data = bodyfat)
+summary(multReg)
+```

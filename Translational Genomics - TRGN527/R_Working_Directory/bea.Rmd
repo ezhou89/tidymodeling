@@ -1,0 +1,44 @@
+---
+title: "bea.R"
+author: "Eugene Zhou"
+date: "1/31/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+library(bea.R )
+beaKey <- 'FEA97DEF-4FBC-46A4-AFCC-C86F3189B6C1'
+
+beaSearch('personal consumption', beaKey)
+beaSearch('gross domestic', beaKey, asHtml = TRUE)
+
+
+```
+
+
+```{r}
+beaSpecs <- list(
+	'UserID' = beaKey ,
+	'Method' = 'GetData',
+	'datasetname' = 'NIPA',
+	'TableName' = 'T20305',
+	'Frequency' = 'Q',
+	'Year' = 'X',
+	'ResultFormat' = 'json'
+);
+beaPayload <- beaGet(beaSpecs);
+
+beaLong <- beaGet(beaSpecs, asWide = FALSE)
+beaStatTab <- beaGet(beaSpecs, iTableStyle = FALSE)
+
+beaViz(beaPayload)
+
+
+```
+

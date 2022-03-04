@@ -1,0 +1,145 @@
+---
+title: "Rmarkdown_TRGN_599_Week_4_Proteomics_Analysis"
+author: "Eugene Zhou"
+date: "20 FEB 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr:: opts_chunk$set(echo = TRUE)
+```
+
+# Checking R working directory
+```{R}
+# Check your current working directory
+getwd()
+
+# Set your working directory
+setwd("/Users/eugenezhou/Documents/R_working_directory")
+```
+
+# To Install mzR:
+
+## To install this package, start R (version "3.5") and enter:
+##     if (!requireNamespace("BiocManager", quietly = TRUE))
+##         install.packages("BiocManager")
+##     BiocManager::install("mzR", version = "3.8")
+
+# To Install msdata:
+
+##if (!requireNamespace("BiocManager", quietly = TRUE))
+##    install.packages("BiocManager")
+##BiocManager::install("msdata", version = "3.8")
+
+# To Install magrittr:
+## install.packages("magrittr")
+
+# In this analysis we will be accessing raw data from published studies.
+
+# All code will be explained during our TRGN 599 class.
+
+```{R}
+library(mzR)
+library(msdata)
+library(magrittr)
+
+TRGN599_MS_file <- 'TRGN599_A4.mzXML'
+my.data <- openMSfile(TRGN599_MS_file)
+
+```
+
+# Closing the data package
+
+```{R}
+
+close(my.data)
+
+```
+
+# Accessing the measurement - metadata:
+
+```{r}
+
+runInfo(my.data)
+
+```
+
+```{r}
+instrumentInfo(my.data)
+
+```
+
+```{r}
+header(my.data)
+class(my.data)
+
+```
+
+
+# Investigating the number of actual spectra in the set:
+```{r}
+runInfo(my.data)$scanCount
+```
+
+# Investigating the ion source for the experiment:
+```{r}
+instrumentInfo(my.data)$ionisation
+```
+
+# Accessing the data itself using the peaks() function.
+```{r}
+peaks(my.data,1)
+```
+
+```{r}
+peaks(my.data)
+```
+
+# Peptide Isentification by using MS/MS spectra
+# Load the dataset:
+```{r}
+
+library(mzR)
+
+pl <- peaks(my.data,7)
+
+```
+
+# Plot the spectrum
+```{r}
+
+plot(pl, type="h")
+
+```
+
+# Pick up the 15 strongest peaks:
+```{r}
+
+topnum <- 15
+pl.top <- pl[pl[,2] %in% head(sort(pl[,2],decreasing=T),topnum),1]
+
+pl.top
+
+max(pl.top)
+min(pl.top)
+
+```
+
+#Identifying the 20 strongest peaks:
+```{r}
+topnum <- 20
+pl.top <- pl[pl[,2] %in% head(sort(pl[,2],decreasing=T),topnum),1]
+pl.top
+
+max(pl.top)
+min(pl.top)
+```
+
+
+#Creating a matrix that contains the m/z differences between the different peaks:
+```{r}
+
+peakdiff <- outer(pl.top, pl.top, '-')
+plot(density(abs(peakdiff)))
+
+```
