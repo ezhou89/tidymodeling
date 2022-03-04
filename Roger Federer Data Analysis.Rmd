@@ -180,7 +180,7 @@ rf_df <- rf_df %>%
          opponent_TB3,  
          opponent_TB4,  
          opponent_TB5) %>%
-  select(-name, -rf_ht, -rf_set4, -rf_set5, -rf_TB1, -rf_TB2, -rf_TB3, -rf_TB4, -rf_TB5, -opponent_set4, -opponent_set5, -opponent_TB1, -opponent_TB2, -opponent_TB3, -opponent_TB4, -opponent_TB5, -Retirement, -score, -opponent_name)
+49.5  select(-name, -rf_ht, -rf_set4, -rf_set5, -rf_TB1, -rf_TB2, -rf_TB3, -rf_TB4, -rf_TB5, -opponent_set4, -opponent_set5, -opponent_TB1, -opponent_TB2, -opponent_TB3, -opponent_TB4, -opponent_TB5, -Retirement, -score, -opponent_name)
 
 rf_df[is.na(rf_df[, 1:ncol(rf_df)])] <- 0
 ```
