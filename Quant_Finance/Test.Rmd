@@ -1,0 +1,46 @@
+---
+title: "Quandl"
+author: "Eugene Zhou"
+date: "6/19/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(Quandl)
+library(tidyverse)
+```
+
+```{r}
+# load api key
+Quandl.api_key("fXaXsKHTKsBWpjbCtiH_")
+```
+
+```{r}
+# get aapl data
+AAPL <- Quandl.datatable('SHARADAR/SF1', ticker=c('AAPL'))
+```
+
+```{r}
+head(AAPL)
+```
+
+
+```{r}
+names(AAPL)
+```
+
+```{r}
+AAPL$fcf
+```
+
+```{r}
+plot(AAPL$fcf ~ AAPL$calendardate)
+```
+```{r}
+SF1_table <- https://www.quandl.com/api/v3/datatables/SHARADAR/SF1?qopts.export=true&api_key=fXaXsKHTKsBWpjbCtiH_
+```
+

@@ -1,0 +1,372 @@
+---
+title: "Rmarkdown_TRGN_599_Week_4_Proteomics_Analysis"
+author: "Enrique I. Velazquez Villarreal, MD, PhD"
+date: "1/25/2019"
+output: html_document
+---
+
+# Checking R working directory
+```{R}
+# Check your current working directory
+getwd()
+
+# Set your working directory
+setwd("/Users/enriquevelazquez/Documents/R_working_directory")
+```
+
+# To Install mzR:
+
+## To install this package, start R (version "3.5") and enter:
+##     if (!requireNamespace("BiocManager", quietly = TRUE))
+##         install.packages("BiocManager")
+##     BiocManager::install("mzR", version = "3.8")
+
+# To Install msdata:
+
+##if (!requireNamespace("BiocManager", quietly = TRUE))
+##    install.packages("BiocManager")
+##BiocManager::install("msdata", version = "3.8")
+
+# To Install magrittr:
+## install.packages("magrittr")
+
+# In this analysis we will be accessing raw data from published studies.
+
+# All code will be explained during our TRGN 599 class.
+
+```{R}
+library(mzR)
+library(msdata)
+library(magrittr)
+
+msfile <- system.file("threonine/threonine_i2_e35_pH_tree.mzXML", 
+                     package = "msdata")
+
+my.data <- openMSfile(msfile)
+
+```
+
+# Closing the data package
+
+```{R}
+
+close(my.data)
+
+```
+
+# Accessing the measurement - metadata:
+
+```{r}
+
+runInfo(my.data)
+
+```
+
+```{r}
+instrumentInfo(my.data)
+
+```
+
+```{r}
+header(my.data)
+```
+
+
+# Investigating the number of actual spectra in the set:
+```{r}
+runInfo(my.data)$scanCount
+```
+
+# Investigating the ion source for the experiment:
+```{r}
+instrumentInfo(my.data)$ionisation
+```
+
+# Accessing the data itself using the peaks() function.
+```{r}
+peaks(my.data,1)
+```
+
+```{r}
+peaks(my.data)
+```
+
+# Peptide Isentification by using MS/MS spectra
+# Load the dataset:
+```{r}
+
+library(mzR)
+msfile <- system.file("threonine/threonine_i2_e35_pH_tree.mzXML", 
+                     package = "msdata")
+my.data <- openMSfile(msfile)
+pl <- peaks(my.data,7)
+
+```
+
+# Plot the spectrum
+```{r}
+
+plot(pl, type="h")
+
+```
+
+# Pick up only the strongest peaks:
+```{r}
+
+topnum <- 15
+pl.top <- pl[pl[,2] %in% head(sort(pl[,2],decreasing=T),topnum),1]
+
+```
+
+#Creating a matrix that contains the m/z differences between the different peaks:
+```{r}
+
+peakdiff <- outer(pl.top, pl.top, '-')
+plot(density(abs(peakdiff)))
+
+```
+
+# Download the aa.mass.csv file from Blackboard
+# Read the monoisotopic mass of the amino acids that is stored in the file: 
+```{r}
+
+aa.mass <-read.csv("aa_mass.csv", row.names = 1)
+
+```
+
+# Create a matrix with the same dimensions as the peakdiff matrix and fill it up with dashes.
+# Storing the identified amino acids:
+```{r}
+
+peakdiff.aa <- matrix(rep('-', topnum^2), ncol=topnum, nrow=topnum)
+
+```
+
+# Take the weight for each aminoacids one by one and check the peakdiff matrix if we find the masses among the differences.
+
+```{r}
+
+topnum <- 15
+prec <- 0.04
+pl.top <- pl[pl[,2]%in% head(sort(pl[,2], decreasing=T), topnum),1]
+peakdiff <- outer(pl.top,pl.top,'-')
+peakdiff.aa <- matrix(rep('-',topnum^2),ncol=topnum, nrow=topnum)
+aa.mass <- read.csv("aa_mass.csv", row.names = 1)
+
+ystep<-max(pl[,2])/25
+ypos <- ystep*4
+plot(pl,type="h")
+for(aa in row.names(aa.mass))
+  {
+  peakdiff.aa[abs(peakdiff-aa.mass[aa,])<prec]<-aa
+  aa.match <- which(abs(peakdiff-aa.mass[aa,])<prec,arr.ind=T)
+  if(length(aa.match))
+    {
+    for(i in 1:dim(aa.match)[1])
+         {
+      segnebts(pl.top[aa.match[i,2]], ypos,
+               pl.top[aa.match[i,1]],ypos)
+      text(pl.top[aa.match[i,2]],ypos,aa)
+         }
+  }
+  ypos <- ypos+ystep
+}
+
+
+```
+
+# Quantitative proteomics
+# Reading in the peptide and metadata section of the file:
+
+```{r}
+
+library(MSnbase)
+mztab <- 'F063721.dat-mztab.txt'
+qnt <- readMzTabData(mztab, what = "PEP", version = "0.9",  verbose = isMSnbaseVerbose())
+
+```
+
+# Rename the samples in the qnt object by applying the names of the TNT reporter ions:
+```{r}
+
+sampleNames(qnt) <- c("TMT6.126", "TMT6.127", "TMT6.128", "TMT6.129", "TMT6.130", "TMT6.131")
+
+```
+
+# Accessing the peptide abundance of the corresponding peaks in the six samples by employing the exprs() function
+```{r}
+
+head(exprs(qnt))
+
+```
+
+```{r}
+
+dim(exprs(qnt))
+
+```
+
+# Reaching the peptide abundances in the individual channels by using the index of the channel:
+```{r}
+
+exprs(qnt)[,1]
+
+```
+
+# Looking the distribution of the measured values in the six channels:
+```{r}
+
+boxplot(exprs(qnt), main="TRGN 599: Raw data")
+
+```
+
+# Normalizing to make values comparable using the normalize() function:
+```{r}
+
+qntS <- normalise(qnt, "sum")
+qntV <- normalise(qntS, "vsn")
+qntV2 <- normalise(qnt, "vsn")
+
+```
+
+# Creating boxplots:
+```{r}
+
+par(mfrow=c(2,2))
+boxplot(exprs(qnt), main="TRGN 599: Raw data")
+
+```
+
+```{r}
+
+boxplot(exprs(qntS), main="TRGN 599: Sum normalization")
+
+```
+
+```{r}
+
+boxplot(exprs(qntV), main="TRGN 599: Variance stabilization of sum")
+
+```
+
+```{r}
+
+boxplot(exprs(qntV2), main="TRGN 599: Variance stabilization on the raw data")
+
+```
+
+# Visualizing box pots together
+```{r}
+
+par(mfrow=c(2,2))
+boxplot(exprs(qnt), main="TRGN 599: Raw data")
+boxplot(exprs(qntS), main="TRGN 599: Sum normalization")
+boxplot(exprs(qntV), main="TRGN 599: Variance stabilization of sum")
+boxplot(exprs(qntV2), main="TRGN 599: Variance stabilization on the raw data")
+par(mfrow=c(1,1))
+
+```
+
+# Note: VSN-normalized data can be used for comparative purposes.
+# Using the protein accession number to put the measures together for the different peptides of the same proteins
+# By employing the combineFeatures() function:
+```{r}
+
+protqnt <-
+ combineFeatures(qnt,
+                 groupBy = fData(qnt)$accession, fun = sum)
+
+```
+
+# Same step that above but using normalized data
+```{r}
+
+protqntV2 <-
+ combineFeatures(qntV2,
+                 groupBy = fData(qnt)$accession, fun = sum)
+
+```
+
+# Replacing the cryptic names of the added proteins with their SwissProt ID
+```{r}
+
+protexp <- exprs(protqnt)
+row.names(protexp)[400:404] <- c("PYGM_RABIT", "TRYO_PIG", "ENO1_Y EAST", "ALBU_BOVIN", "CYC_BOVIN")
+
+```
+
+# Checking the relative protein amounts in the different samples for the added proteins:
+```{r}
+
+matplot(t(protexp[400:404,]), type = "b", col=c("red", "blue", "black", "green", "cyan"), xlab="TRGN 599: Samples", ylab="TRGN 599: Protein abundance")
+legend("topright", row.names(protexp)[400:404], lty = 1,
+      bty="n", cex = .8, col = c("red","blue","black","green","cyan"))
+
+
+```
+
+# Normalize data to visualize the similarity between proteins and samples by creating heatmaps
+```{r}
+
+wbcol <- colorRampPalette(c("white","darkblue"))(256)
+heatmap(protexp[350:404,], col=wbcol)
+
+```
+
+# Getting protein-specific annotation
+```{r}
+
+# Getting protein-specific annotation
+
+# Installing hpar
+#if (!requireNamespace("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+#BiocManager::install("hpar", version = "3.8")
+
+
+library(hpar)
+id <- "ENSG00000158813"
+eda.RnaGT <- getHpa(id, "rnaGeneTissue")
+eda.RnaGC <- getHpa(id, "rnaGeneCellLine")
+eda.locSB <- getHpa(id, "hpaSubcellularLoc")
+eda.locSBL <- getHpa(id, "hpaSubcellularLoc14")
+eda.locCA <- getHpa(id, "hpaCancer")
+
+```
+
+#  Visualizing first five rows of "rnaGeneTissue"
+```{r}
+
+head(eda.RnaGT)
+
+```
+
+#  Visualizing first five rows of "rnaGeneCellLine"
+```{r}
+
+head(eda.RnaGC)
+
+```
+
+#  Visualizing first five rows of "hpaSubcellularLoc"
+```{r}
+
+head(eda.locSB)
+
+```
+
+#  Visualizing "hpaSubcellularLoc14"
+```{r}
+
+head(eda.locSBL)
+
+```
+
+#  Visualizing first five rows of "hpaCancer"
+```{r}
+
+head(eda.locCA)
+
+```
+
+#

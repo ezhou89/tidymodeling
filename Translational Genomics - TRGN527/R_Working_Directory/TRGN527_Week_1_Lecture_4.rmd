@@ -1,0 +1,161 @@
+---
+title: "TRGN527_Week_1_Lecture_4"
+author: "EIVV"
+output: html_document
+---
+
+## Importing TCGA Data
+
+```{R}
+# Check your current working directory
+getwd()
+
+# Set your working directory
+setwd("/Users/eugenezhou/Documents/R_working_directory")
+
+# Upload your file
+data <- read.table("trgn599.rna.tsv", header = TRUE, sep = "\t")
+
+# Display the names of the header
+# since it is a large table display the first five names
+
+allheaders <- names(data)
+head(allheaders)
+
+
+# Plot the lo2 two of the first two samples of the dataset
+plot(log2(data$X00314416.31db.41a3.8264.ef7bcd3279af), log2(data$X008d0418.e5a5.43d0.bc99.77ae9a0d85cf), col="blue")
+```
+
+## Writing into files
+
+```{R}
+
+# Write a table with column names and without row names
+write.table(data, "output-data_1.csv", append=FALSE, col.names=TRUE,
+          row.names = FALSE, quote = FALSE, sep = ",")
+
+# Display first five rows and first two columns
+data_1 <- read.table("output-data_1.csv", header = TRUE, sep = ",")
+data_1[1:5,1:2]
+
+# Write a table with column names, without row names and with quotes.
+write.table(data, "output-data_2.csv", append=FALSE, col.names=TRUE,
+            row.names = FALSE, quote = TRUE, sep = ",")
+
+# Display first five rows and first two columns
+data_2 <- read.table("output-data_2.csv", header = TRUE, sep = ",")
+data_2[1:5,1:2]
+
+# Write a table with col names and row names, and with quotes.
+write.table(data, "output-data_3.csv", append=FALSE, col.names=TRUE,
+            row.names = TRUE, quote = TRUE, sep = ",")
+
+# Display first five rows and first two columns
+data_3 <- read.table("output-data_3.csv", header = TRUE, sep = ",")
+data_3[1:5,1:2]
+
+# Write a table without col names and row names, and without quotes.
+write.table(data, "output-data_4.csv", append=FALSE, col.names=FALSE,
+            row.names = FALSE, quote = FALSE, sep = ",")
+
+# Display first five rows and first two columns
+data_4 <- read.table("output-data_4.csv", header = TRUE, sep = ",")
+data_4[1:5,1:2]
+
+# Write a table without col names and row names, and without quotes of the first sample of the data file
+write.table(data$X00314416.31db.41a3.8264.ef7bcd3279af, "output-data_5.csv", append=FALSE, col.names=FALSE,
+            row.names = FALSE, quote = FALSE, sep = ",")
+
+# Display first five rows since this file has only one column - one sample.
+data_5 <- read.table("output-data_5.csv", header = TRUE, sep = ",")
+head(data_5)
+
+# Write a table without col names and row names, and without quotes of a list of the first and second samples of the data file
+write.table(list(data$X00314416.31db.41a3.8264.ef7bcd3279af,data$X008d0418.e5a5.43d0.bc99.77ae9a0d85cf), "output-data_6.csv", append=FALSE, col.names=FALSE, row.names = FALSE, quote = FALSE, sep = ",")
+
+# Display first five rows and first two columns
+data_6 <- read.table("output-data_6.csv", header = TRUE, sep = ",")
+data_6[1:5,1:2]
+
+```
+
+## Check TCGA Data
+
+```{R}
+clinical_data <- read.table("trgn599.clinical.tsv", header = TRUE, sep = "\t")
+
+# Check number of rows of the dataset
+nrow(clinical_data)
+
+# Check number of columns of the dataset
+ncol(clinical_data)
+
+# Display the first row and all columns of the dataset
+clinical_data[1,]
+
+# display the first column and all rows of the dataset
+clinical_data[,1]
+```
+
+## Summarize TCGA Data
+
+```{R}
+# Display the descriptive statistics of the TCGA Data
+summary(clinical_data)
+
+# Display the headers of the TCGA Data
+colnames(clinical_data)
+
+# Display the descriptive statistics of the header: "days_to_last_follow_up"
+summary(clinical_data$days_to_last_follow_up)
+
+```
+
+
+## Composite plots
+
+```{R}
+# Upload your file
+data <- read.table("trgn599.rna.tsv", header = TRUE, sep = "\t")
+
+# Check colnames
+colnames(data)
+
+# generate two vectors of first two columns of the dataset
+exprA <- data$X00314416.31db.41a3.8264.ef7bcd3279af
+exprB <- data$X008d0418.e5a5.43d0.bc99.77ae9a0d85cf
+  
+
+# Plot the log 2 of the first two samples of the dataset according with a specific gene expression ranges
+plot(log2(exprA), log2(exprB), col= "blue")
+for(i in which(exprA<500)) {points(log2(exprA[i]),log(exprB[i]), col="red")}
+for(i in which(exprA>1000)) {points(log2(exprA[i]),log(exprB[i]), col="blue")}
+for(i in which(exprA>=500 & exprA <=1000)) {points(log2(exprA[i]),log(exprB[i]), col="green")}
+```
+
+
+## Composite plots 2
+
+```{R}
+a = 0; b = 0; c = 0;
+for(i in exprA) {
+  if(i<500) {a=a+1};
+  if(i>1000){b=b+1}else{c=c+1}
+};
+barplot(c(a,b,c),
+        names=c("<500",">1000","500-1000"),
+        col=c("red", "blue", "green"),
+        yla="Frequency")
+```
+
+## Exercise
+
+```{R}
+# Exercise
+# Upload the file trgn599.clinical.tsv and display how many females and males are in the dataset. 
+
+summary(clinical_data$gender)
+```
+
+

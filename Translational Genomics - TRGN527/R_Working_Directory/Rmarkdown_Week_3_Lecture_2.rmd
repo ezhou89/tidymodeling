@@ -1,0 +1,55 @@
+---
+title: "Rmarkdown_Week_3_Lecture_2"
+author: "Enrique I. Velazquez Villarreal, MD, PhD"
+date: "1/22/2019"
+output: html_document
+---
+
+# The following code is explained in the Week 3 Lecture 2
+
+## Distributions:
+# Binomial Distribution
+```{R}
+rbinom(5, size = 10, prob = 0.2)
+```
+```{R}
+rbinom(10, size = 1, prob = 0.2)
+```
+```{R}
+dbinom(3, size = 10, prob = 0.2)
+```
+
+```{R}
+x <- 0:10
+Px <- dbinom(x, size = 10, prob = 0.2)
+round(Px, 2)
+
+plot(x, Px, type = "h", xlab = "Number of Successes",
+     ylab = "Probability Mass",
+     main = "TRGN 599: Binomial(10, 0.2)")
+points(x, Px, pch = 16)
+abline(h = 0, col = "gray")
+```
+```{R}
+pbinom(3, size = 10, prob = 0.2, lower.tail = TRUE)
+```
+```{R}
+qbinom(0.879, size = 10, prob = 0.2, lower.tail = TRUE)
+```
+```{R}
+rpois(12, 4)
+```
+
+```{R}
+dpois(6, 4)
+```
+
+
+```{R}
+ppois(6, 4)
+```
+
+
+```{R}
+qpois(0.889, 4)
+```

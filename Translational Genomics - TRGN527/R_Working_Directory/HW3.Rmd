@@ -1,0 +1,32 @@
+---
+title: "TRGN 527 - HW 3"
+author: "Eugene Zhou"
+date: "2/6/2020"
+output: html_document
+---
+
+#Check Working Directory
+```{r}
+getwd()
+setwd('~/Documents/R_Working_Directory')
+```
+#Loading Clinical Data
+```{r}
+clinical_data <- read.table('trgn599.clinical.tsv', header = TRUE, sep = '\t')
+summary(clinical_data)
+colesterol_Dataset <- read.table('col.txt', header = TRUE)
+summary(colesterol_Dataset)
+```
+
+#Generating Histograms
+```{r}
+hist(clinical_data$weight)
+hist(clinical_data$height)
+hist(colesterol_Dataset$CHOL)
+hist(colesterol_Dataset$WEIGHT)
+```
+
+#Generating Boxplots
+```{r}
+boxplot(clinical_data$gender)
+```

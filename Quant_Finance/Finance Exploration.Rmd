@@ -1,0 +1,92 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+getwd()
+```
+
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+us.balance.annual <- read.csv("~/Downloads/us-balance-annual.csv", sep=";")
+us.income.annual <- read.csv("~/Downloads/us-income-annual.csv", sep=";")
+us.cashflow.annual <- read.csv("~/Downloads/us-cashflow-annual.csv", sep=";")
+industries <- read.csv("~/Downloads/industries.csv", sep=";")
+us.companies <- read.csv("~/Downloads/us-companies.csv", sep=";")
+```
+
+```{r}
+company_list <- full_join(us.companies, industries) %>%
+  nest_by(Industry)
+```
+
+```{r}
+bio <- company_list %>%
+  filter(Industry == "Biotechnology") %>%
+  unnest()
+```
+
+```{r}
+bs_df <- us.balance.annual %>%
+  filter(Fiscal.Year == 2019)
+```
+
+```{r}
+bs_df %>%
+  skimr::skim()
+```
+
+```{r}
+x <- bs_df %>%
+  mutate(Current_Ratio = Total.Current.Assets/Total.Current.Liabilities) %>%
+  filter(Current_Ratio >= 3)
+```
+
+```{r}
+cf_df <- us.cashflow.annual %>% 
+  filter(Fiscal.Year == 2019)
+```
+
+```{r}
+cf_df %>%
+  skimr::skim()
+```
+
+```{r}
+cf_df %>%
+  ggplot() + 
+  aes(x = Shares..Diluted.) + 
+  geom_histogram() + 
+  scale_x_log10()
+```
+
+```{r}
+is_df <- us.income.annual %>% 
+  filter(Fiscal.Year == 2019)
+```
+
+```{r}
+is_df %>%
+  skimr::skim()
+```
+
+```{r}
+y <- left_join(bio, us.balance.annual, by = "Ticker")
+y %>%
+  filter(Fiscal.Year == 2018)
+```
+
+
+
+
+
+

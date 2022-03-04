@@ -1,0 +1,93 @@
+---
+title: "Trgn 527 - Assignment 2"
+author: "Eugene Zhou"
+date: "2/4/2020"
+output: html_document
+---
+
+#Load Data
+```{r}
+clinical_data <- read.table("trgn599.clinical.tsv", header = TRUE, sep = "\t")
+summary(clinical_data)
+head(clinical_data)
+```
+
+#Descriptive Statistics of Clinical Data Age at Diagnosis
+```{r}
+mean(clinical_data$age_at_diagnosis, na.rm = TRUE)
+median(clinical_data$age_at_diagnosis, na.rm = TRUE)
+sd(clinical_data$age_at_diagnosis, na.rm = TRUE)
+var(clinical_data$age_at_diagnosis, na.rm = TRUE)
+```
+
+#Calculating Mode
+```{r}
+#Calculating the mode
+
+# Creating a function named "getmode"
+getmode <- function(x) {
+  uniqx <- unique(x)   
+  uniqx[which.max(tabulate(match(x, uniqx)))]}
+
+#Create a vector using the variable "weight"
+x <- clinical_data$age_at_diagnosis
+x <- x[!is.na(x)]
+
+# Calculating the mode
+calculating_mode <- getmode(x)
+calculating_mode
+
+```
+
+#Descriptive Statistics Days to Death
+```{r}
+mean(clinical_data$days_to_death, na.rm = TRUE)
+median(clinical_data$days_to_death, na.rm = TRUE)
+sd(clinical_data$days_to_death, na.rm = TRUE)
+var(clinical_data$days_to_death, na.rm = TRUE)
+
+y <- clinical_data$days_to_death
+y <- y[!is.na(y)]
+calculating_mode <- getmode(y)
+calculating_mode
+```
+
+#Descriptive Statistics Days to Last Follow Up
+```{r}
+mean(clinical_data$days_to_last_follow_up, na.rm = TRUE)
+median(clinical_data$days_to_last_follow_up, na.rm = TRUE)
+sd(clinical_data$days_to_last_follow_up, na.rm = TRUE)
+var(clinical_data$days_to_last_follow_up, na.rm = TRUE)
+z <- clinical_data$days_to_last_follow_up
+z <- z[!is.na(z)]
+calculating_mode <- getmode(z)
+calculating_mode
+
+```
+
+#Load RNA Data
+```{r}
+rna_data <- read.table('trgn599.rna.tsv', header = TRUE, sep = '\t')
+class(rna_data)
+summary(rna_data)
+dim(rna_data)
+
+```
+
+#Identify Row of ENSG00000167578.15
+```{r}
+gene_of_interest <- rna_data$gene=='ENSG00000167578.15'
+n <- which(gene_of_interest==TRUE)
+```
+
+#Expression Level of ENSG00000167578.15
+```{r}
+rna_matrix <- as.matrix(rna_data)
+sample_gene <- as.numeric(rna_matrix[n,])
+sample_gene <- na.omit(sample_gene)
+
+mean(sample_gene)
+median(sample_gene)
+
+```
+

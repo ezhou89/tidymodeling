@@ -1,0 +1,38 @@
+---
+title: "Quant Finance - Big Data"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(Quandl) 
+library(xts)
+```
+
+```{r}
+#download currency exchange rates in EUR, for USD, CHF, GBP, JPY, RUB, CAD, AUD for 2005-2014
+
+currencies <- c( "USD", "CHF", "GBP", "JPY", "RUB", "CAD", "AUD") 
+currencies <- paste("CURRFX/EUR", currencies, sep = "")
+currency_ts <- lapply(as.list(currencies), Quandl, start_date="2005-01-01",end_date="2013-06-07", type="xts")
+```
+
+```{r}
+#visual exchange rate of EUR/USD, EUR/GBP, EUR/CAD, EUR/AUD
+
+Q <- cbind(
+  currency_ts[[1]]$Rate, currency_ts[[3]]$Rate, currency_ts[[6]]$Rate, currency_ts[[7]]$Rate
+)
+
+matplot(Q, type = "l", xlab = "", ylab = "", main = "USD, GBP, CAD, AUD", xaxt = 'n', yaxt = 'n')
+ticks = axTicksByTime(currency_ts[[1]])
+abline(v = ticks,h = seq(min(Q$Rate), max(Q$Rate), length = 5), col = "grey", lty = 4)
+axis(1, at = ticks, labels = names(ticks))
+axis(2, at = seq(min(Q$Rate), max(Q$Rate), length = 5), labels = round(seq(min(Q$Rate), max(Q$Rate), length = 5), 1))
+legend("topright", legend = c("USD/EUR", "GBP/EUR", "CAD/EUR", "AUD/ EUR"), col = 1:4, pch = 19)
+
+```
+

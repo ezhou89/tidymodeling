@@ -1,0 +1,41 @@
+---
+title: "TRGN599_Week_5_Lecture_2_1"
+author: "Enrique I. Velazquez Villarreal, MD, PhD, MPH, MS"
+date: "2/6/2019"
+output: html_document
+---
+
+# Calculating Sensitivity, Specificity and Predictive Value of a diagnostic.
+
+# Steps will be explained in detail during class.
+
+# From epiR package:
+
+## Scott et al. 2008, Table 1:
+## A new diagnostic test was trialled on 1586 patients. 
+## Of 744 patients that were disease positive, 670 tested positive. 
+## Of 842 patients that were disease negative, 640 tested negative. 
+## What is the likeliood ratio of a positive test? 
+## What is the number needed to diagnose?
+
+
+```{R}
+# Installing epiR
+# install.packages("epiR")
+
+library(epiR)
+
+TRGN599_dat1 <- as.table(matrix(c(670,202,74,640), nrow = 2, byrow = TRUE))
+colnames(TRGN599_dat1) <- c("Dis+","Dis-")
+rownames(TRGN599_dat1) <- c("Test+","Test-")
+TRGN599_Eval <- epi.tests(TRGN599_dat1, conf.level = 0.95)
+print(TRGN599_Eval); summary(TRGN599_Eval)
+```
+
+# Summary of Results:
+
+## Test sensitivity is 0.90 (95% CI 0.88 -- 0.92). 
+## Test specificity is 0.76 (95% CI 0.73 -- 0.79). 
+## The likelihood ratio of a positive test is 3.75 (95% CI 3.32 to 4.24). 
+## The number needed to diagnose is 1.51 (95% CI 1.41 to 1.65). 
+## Around 15 persons need to be tested to return 10 positive tests.

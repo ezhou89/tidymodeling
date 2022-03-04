@@ -1,0 +1,25 @@
+---
+title: "Rmarkdown_Week_3_Lecture_1_2"
+author: "Enrique I. Velazquez Villarreal, MD, PhD"
+date: "1/14/2019"
+output: html_document
+---
+
+# Comparing Groups VIA Kernal Density
+```{R}
+# Compare length distributions for GP with VC, OJ
+library(sm)
+attach(ToothGrowth)
+
+# create value labels 
+supp.f <- factor(supp, levels= c("VC", "OJ"),
+  labels = c("VC", "OJ")) 
+
+# plot densities 
+sm.density.compare(len, supp, xlab="Length")
+title(main="TRGN 599: Length by supplement")
+
+# add legend via mouse click
+colfill<-c(2:(2+length(levels(supp.f)))) 
+#legend(locator(1), levels(supp.f), fill=colfill)
+```
