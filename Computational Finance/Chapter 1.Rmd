@@ -1,0 +1,18 @@
+---
+title: "Notes on Computational Finance - Ch 1"
+author: "Eugene Zhou"
+date: "3/5/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Securities - fungible, negotiable financial instruments representing financial value
+Debt - risk-free securities, such as bonds, commercial notes, and bank deposits
+Equity - refers to companies stocks or share value
+Derivatives - value depon on the values of other, more basic underlying variables. e.g. futures, swaps, and options
+
+Bonds are usually considered the benchmark of risk-free security in financial engineering
+
