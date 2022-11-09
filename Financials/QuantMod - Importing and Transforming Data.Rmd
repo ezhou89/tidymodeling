@@ -18,7 +18,34 @@ getwd()
 library(quantmod)
 library(PerformanceAnalytics)
 library(tidyverse)
+library(edgar)
 ```
+
+```{r}
+cik <- readr::read_delim("~/Downloads/cik-lookup-data.txt", 
+    delim = ":", escape_double = FALSE, trim_ws = TRUE)
+```
+
+
+```{r}
+spacs <- readxl::read_excel("~/Downloads/List of Companies That Have Merged With A SPAC.xlsx", 
+    sheet = "SPACS")
+```
+
+```{r}
+business <- getBusinDescr(cik.no = 320193, filing.year = 2005, useragent = 'eugenezh@usc.edu')
+```
+
+```{r}
+df <- searchFilings(cik.no = 320193, form.type = "10-K", filing.year = 2020, useragent = 'eugenezh@usc.edu')
+```
+
+
+```{r}
+info <- getFilings(cik.no = 000320193, filing.year = (2021), 
+                       form.type = 'all', useragent = 'eugenezh@usc.edu') 
+```
+
 
 ```{r}
 #assign a starting time frame
