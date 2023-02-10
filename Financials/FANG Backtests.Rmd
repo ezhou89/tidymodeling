@@ -1,0 +1,416 @@
+---
+title: "Untitled"
+author: "Eugene Zhou"
+date: "2023-01-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(simfinapi)
+library(alphavantager)
+library(tidyverse)
+library(tidyquant)
+library(lubridate)
+```
+
+```{r}
+sfa_set_api_key(api_key = "jRip1bOy0XLlxdAmke28qOWlQJ8wgoE7")
+sfa_set_cache_dir("/Users/eugenezhou/R_Working_Directory/tidymodeling/Financials")
+av_api_key("OX8RXX78OVQMFO1N")
+```
+
+```{r}
+nflx_earn <- readxl::read_excel("~/Downloads/NFLX.xlsx", 
+                                sheet = "Company Earnings") %>% 
+  drop_na()
+```
+
+```{r}
+# set up data tables
+nflx_plus1 <- nflx_earn
+nflx_plus2 <- nflx_earn 
+nflx_plus3 <- nflx_earn 
+nflx_minus1 <- nflx_earn 
+nflx_minus2 <- nflx_earn 
+nflx_minus3 <- nflx_earn
+
+# add column to label dates
+nflx_earn$catalyst <- 0
+nflx_plus1$catalyst <- 1
+nflx_plus2$catalyst <- 2
+nflx_plus3$catalyst <- 3
+nflx_minus1$catalyst <- -1
+nflx_minus2$catalyst <- -2
+nflx_minus3$catalyst <- -3
+
+# turn reportedDate to dates
+nflx_earn$date <- as_date(nflx_earn$reportedDate)
+nflx_earn$reportedDate <- as_date(nflx_earn$reportedDate)
+nflx_plus1$date <- nflx_plus1$reportedDate %>% as_date() + 1
+nflx_plus2$date <- nflx_plus1$reportedDate %>% as_date() + 2
+nflx_plus3$date <- nflx_plus1$reportedDate %>% as_date() + 3
+nflx_minus1$date <- nflx_minus1$reportedDate %>% as_date() - 1
+nflx_minus2$date <- nflx_minus2$reportedDate %>% as_date() - 2
+nflx_minus3$date <- nflx_minus3$reportedDate %>% as_date() - 3
+
+nflx_earnings <- rbind(nflx_earn, nflx_plus1, nflx_plus2, nflx_plus3, nflx_minus1, nflx_minus2, nflx_minus3) %>%
+  select(-fiscalDateEnding)
+
+nflx_earnings <- nflx_earnings %>%
+  arrange(reportedDate, desc = TRUE)
+```
+
+```{r}
+# get daily prices
+nflx_price <- sfa_get_prices("NFLX")
+
+# add daily return and convert to percentage
+nflx_price <- nflx_price %>%
+  mutate(daily_return = (adj_close / lag(adj_close) - 1)*100)
+```
+
+```{r}
+# right join to keep prices
+nflx_df <- nflx_earnings %>%
+  left_join(nflx_price, by = c("date" = "date"))
+
+# clean df
+nflx_df <- nflx_df %>%
+  select(-c(simfin_id, currency, dividend)) %>% 
+  drop_na()
+```
+
+
+```{r}
+nflx_df %>%
+  ggplot() + 
+  aes(x = `reportedDate`, y = `daily_return`, color = `catalyst`) + 
+  geom_point()
+```
+
+```{r}
+nflx_df %>%
+  group_by(reportedDate) %>%
+  summarise(mean_return = mean(daily_return), 
+            stdev = sd(daily_return))
+```
+
+```{r}
+nflx_df %>%
+  ggplot() + 
+  aes(x = `catalyst`, y = `daily_return`, color = `surprisePercentage`) + 
+  geom_point() + 
+  labs(title = "NFLX - Post-Earnings Returns", 
+       x = "Earnings +/- X Days", 
+       y = "% Daily Returns")
+```
+
+```{r}
+nflx_df %>%
+  ggplot() + 
+  aes(x = `date`, y = `close`, color = `catalyst`) + 
+  geom_point() + 
+  labs(title = "NFLX - Post-Earnings Returns", 
+       x = "Earnings +/- X Days", 
+       y = "% Daily Returns")
+```
+
+```{r}
+nflx_df$weekday <- wday(nflx_df$date, label=TRUE, abbr=FALSE)
+```
+
+```{r}
+nflx_df %>%
+  group_by(reportedDate) %>%
+  ggplot() + 
+  aes(x = `weekday`, y = `daily_return`, color = `surprisePercentage`) + 
+  geom_point()
+```
+
+```{r}
+nflx_df %>%
+  filter(catalyst == 2) %>%
+  ggplot() + 
+  aes(x = `weekday`, y = `daily_return`, color = `surprisePercentage`) + 
+  geom_boxplot() + 
+  labs(title = "NFLX - Day of Week - 2 Days Post-Earnings")
+```
+
+
+```{r}
+nflx_df %>%
+  ggplot() + 
+  aes(x = `date`, y = `daily_return`, color = `surprisePercentage`, group =  `reportedDate`) + 
+  geom_boxplot() + 
+  labs(title = "NFLX - % Returns vs Earnings", 
+       y = "% Daily Returns", 
+       x = "Quarterly Earning Dates")
+```
+
+```{r}
+# group reportedEPS and estimatedEPS into 1 column
+
+
+
+```
+
+```{r}
+amzn_earn <- readxl::read_excel("~/Downloads/AMZN.xlsx", 
+                                sheet = "Company Earnings") %>% 
+  drop_na()
+```
+
+```{r}
+# set up data tables
+amzn_plus1 <- amzn_earn
+amzn_plus2 <- amzn_earn 
+amzn_plus3 <- amzn_earn 
+amzn_minus1 <- amzn_earn 
+amzn_minus2 <- amzn_earn 
+amzn_minus3 <- amzn_earn
+
+# add column to label dates
+amzn_earn$catalyst <- 0
+amzn_plus1$catalyst <- 1
+amzn_plus2$catalyst <- 2
+amzn_plus3$catalyst <- 3
+amzn_minus1$catalyst <- -1
+amzn_minus2$catalyst <- -2
+amzn_minus3$catalyst <- -3
+
+# turn reportedDate to dates
+amzn_earn$date <- as_date(amzn_earn$reportedDate)
+amzn_earn$reportedDate <- as_date(amzn_earn$reportedDate)
+amzn_plus1$date <- amzn_plus1$reportedDate %>% as_date() + 1
+amzn_plus2$date <- amzn_plus1$reportedDate %>% as_date() + 2
+amzn_plus3$date <- amzn_plus1$reportedDate %>% as_date() + 3
+amzn_minus1$date <- amzn_minus1$reportedDate %>% as_date() - 1
+amzn_minus2$date <- amzn_minus2$reportedDate %>% as_date() - 2
+amzn_minus3$date <- amzn_minus3$reportedDate %>% as_date() - 3
+
+amzn_earnings <- rbind(amzn_earn, amzn_plus1, amzn_plus2, amzn_plus3, amzn_minus1, amzn_minus2, amzn_minus3) %>%
+  select(-fiscalDateEnding)
+
+amzn_earnings <- amzn_earnings %>%
+  arrange(reportedDate, desc = TRUE)
+```
+
+```{r}
+# get daily prices
+amzn_price <- sfa_get_prices("AMZN")
+
+# add daily return and convert to percentage
+amzn_price <- amzn_price %>%
+  mutate(daily_return = (adj_close / lag(adj_close) - 1)*100)
+```
+
+```{r}
+# right join to keep prices
+amzn_df <- amzn_earnings %>%
+  left_join(amzn_price, by = c("date" = "date"))
+
+# clean df
+amzn_df <- amzn_df %>%
+  select(-c(simfin_id, currency, dividend)) %>% 
+  drop_na()
+```
+
+
+```{r}
+amzn_df %>%
+  ggplot() + 
+  aes(x = `reportedDate`, y = `daily_return`, color = `catalyst`) + 
+  geom_point()
+```
+
+```{r}
+amzn_df %>%
+  group_by(reportedDate) %>%
+  summarise(mean_return = mean(daily_return), 
+            stdev = sd(daily_return))
+```
+
+
+```{r}
+amzn_df %>%
+  ggplot() + 
+  aes(x = `date`, y = `daily_return`, color = `catalyst`, group =  `reportedDate`) + 
+  geom_boxplot() + 
+  labs(title = "AMZN - % Returns vs Earnings", 
+       y = "% Daily Returns", 
+       x = "Quarterly Earning Dates")
+```
+
+```{r}
+amzn_df %>%
+  ggplot() + 
+  aes(x = `catalyst`, y = `daily_return`, color = `surprisePercentage`) + 
+  geom_point() + 
+  labs(title = "AMZN - Post-Earnings Returns", 
+       x = "Earnings +/- X Days", 
+       y = "% Daily Returns")
+```
+
+```{r}
+amzn_df$weekday <- wday(amzn_df$date, label=TRUE, abbr=FALSE)
+```
+
+```{r}
+amzn_df %>%
+  ggplot() + 
+  aes(x = `weekday`, y = `daily_return`, color = `surprisePercentage`) + 
+  geom_point()
+```
+
+```{r}
+amzn_df %>%
+  filter(catalyst == 2) %>%
+  ggplot() + 
+  aes(x = `weekday`, y = `daily_return`, color = `surprisePercentage`) + 
+  geom_boxplot() + 
+  labs(title = "AMZN - Day of Week - 2 Days Post-Earnings")
+```
+
+
+```{r}
+amzn_df %>%
+  ggplot() + 
+  aes(x = `date`, y = `daily_return`, color = `surprisePercentage`, group =  `reportedDate`) + 
+  geom_boxplot() + 
+  labs(title = "AMZN - % Returns vs Earnings", 
+       y = "% Daily Returns", 
+       x = "Quarterly Earning Dates")
+```
+
+```{r}
+goog_earn <- readxl::read_excel("~/Downloads/GOOG.xlsx", 
+                                sheet = "Company Earnings") %>% 
+  drop_na()
+```
+
+```{r}
+# set up data tables
+goog_plus1 <- goog_earn
+goog_plus2 <- goog_earn 
+goog_plus3 <- goog_earn 
+goog_minus1 <- goog_earn 
+goog_minus2 <- goog_earn 
+goog_minus3 <- goog_earn
+
+# add column to label dates
+goog_earn$catalyst <- 0
+goog_plus1$catalyst <- 1
+goog_plus2$catalyst <- 2
+goog_plus3$catalyst <- 3
+goog_minus1$catalyst <- -1
+goog_minus2$catalyst <- -2
+goog_minus3$catalyst <- -3
+
+# turn reportedDate to dates
+goog_earn$date <- as_date(goog_earn$reportedDate)
+goog_earn$reportedDate <- as_date(goog_earn$reportedDate)
+goog_plus1$date <- goog_plus1$reportedDate %>% as_date() + 1
+goog_plus2$date <- goog_plus1$reportedDate %>% as_date() + 2
+goog_plus3$date <- goog_plus1$reportedDate %>% as_date() + 3
+goog_minus1$date <- goog_minus1$reportedDate %>% as_date() - 1
+goog_minus2$date <- goog_minus2$reportedDate %>% as_date() - 2
+goog_minus3$date <- goog_minus3$reportedDate %>% as_date() - 3
+
+goog_earnings <- rbind(goog_earn, goog_plus1, goog_plus2, goog_plus3, goog_minus1, goog_minus2, goog_minus3) %>%
+  select(-fiscalDateEnding)
+
+goog_earnings <- goog_earnings %>%
+  arrange(reportedDate, desc = TRUE)
+```
+
+```{r}
+# get daily prices
+goog_price <- sfa_get_prices("GOOG")
+
+# add daily return and convert to percentage
+goog_price <- goog_price %>%
+  mutate(daily_return = (adj_close / lag(adj_close) - 1)*100)
+```
+
+```{r}
+# right join to keep prices
+goog_df <- goog_earnings %>%
+  left_join(goog_price, by = c("date" = "date"))
+
+# clean df
+goog_df <- goog_df %>%
+  select(-c(simfin_id, currency, dividend)) %>% 
+  drop_na()
+```
+
+
+```{r}
+goog_df %>%
+  ggplot() + 
+  aes(x = `reportedDate`, y = `daily_return`, color = `catalyst`) + 
+  geom_point()
+```
+
+```{r}
+goog_df %>%
+  group_by(reportedDate) %>%
+  summarise(mean_return = mean(daily_return), 
+            stdev = sd(daily_return))
+```
+
+
+```{r}
+goog_df %>%
+  ggplot() + 
+  aes(x = `date`, y = `daily_return`, color = `catalyst`, group =  `reportedDate`) + 
+  geom_boxplot() + 
+  labs(title = "GOOG - % Returns vs Earnings", 
+       y = "% Daily Returns", 
+       x = "Quarterly Earning Dates")
+```
+
+```{r}
+goog_df %>%
+  ggplot() + 
+  aes(x = `catalyst`, y = `daily_return`, color = `surprisePercentage`) + 
+  geom_point() + 
+  labs(title = "GOOG - Post-Earnings Returns", 
+       x = "Earnings +/- X Days", 
+       y = "% Daily Returns")
+```
+
+```{r}
+goog_df$weekday <- wday(goog_df$date, label=TRUE, abbr=FALSE)
+```
+
+```{r}
+goog_df %>%
+  ggplot() + 
+  aes(x = `weekday`, y = `daily_return`, color = `surprisePercentage`) + 
+  geom_point()
+```
+
+```{r}
+goog_df %>%
+  filter(catalyst == 2) %>%
+  ggplot() + 
+  aes(x = `weekday`, y = `daily_return`, color = `surprisePercentage`) + 
+  geom_boxplot() + 
+  labs(title = "GOOG - Day of Week - 2 Days Post-Earnings")
+```
+
+
+```{r}
+goog_df %>%
+  ggplot() + 
+  aes(x = `date`, y = `daily_return`, color = `surprisePercentage`, group =  `reportedDate`) + 
+  geom_boxplot() + 
+  labs(title = "GOOG - % Returns vs Earnings", 
+       y = "% Daily Returns", 
+       x = "Quarterly Earning Dates")
+```
+
