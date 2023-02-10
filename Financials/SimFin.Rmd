@@ -13,15 +13,15 @@ knitr::opts_chunk$set(echo = TRUE)
 getwd()
 ```
 
-
 ```{r}
 library(simfinapi)
-library(simfinR)
+library(alphavantager)
 library(tidyverse)
 ```
 
 ```{r}
 simfin_api <- "jRip1bOy0XLlxdAmke28qOWlQJ8wgoE7"
+av_api_key("OX8RXX78OVQMFO1N")
 ```
 
 
@@ -31,7 +31,58 @@ sfa_set_cache_dir("/Users/eugenezhou/R_Working_Directory/tidymodeling/Financials
 ```
 
 ```{r}
-companies <- simfinR_get_available_companies("jRip1bOy0XLlxdAmke28qOWlQJ8wgoE7")
+#read in data tables
+
+companies <- read_delim("~/R_Working_Directory/tidymodeling/Financials/us-companies.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
+industries <- read_delim("~/R_Working_Directory/tidymodeling/Financials/industries.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
+bs_quarterly <- read_delim("~/R_Working_Directory/tidymodeling/Financials/us-balance-quarterly.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
+inc_quarterly <- read_delim("~/R_Working_Directory/tidymodeling/Financials/us-income-quarterly.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
+cf_quarterly <- read_delim("~/R_Working_Directory/tidymodeling/Financials/us-cashflow-quarterly.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
+shareprices_daily <- read_delim("~/R_Working_Directory/tidymodeling/Financials/us-shareprices-daily.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+```
+
+```{r}
+#join companies and industry tables. drop na to remove non-us companies
+
+df <- companies %>% 
+  left_join(industries, by = "IndustryId") %>%
+  drop_na()
+```
+
+```{r}
+tech <- df %>%
+  filter(Sector == "Technology")
+
+software <- tech %>%
+  filter(Industry == "Application Software")
+```
+
+```{r}
+test <- software %>%
+  left_join(cf_quarterly, by = c("Ticker", "SimFinId")) %>%
+  select(-c(SimFinId, IndustryId, Sector, Currency))
+```
+
+```{r}
+df %>%
+  filter(Sector == "Healthcare")
+```
+
+
+```{r}
+companies <- sfa_get_entities("jRip1bOy0XLlxdAmke28qOWlQJ8wgoE7")
+info <- sfa_get_statement()
 ```
 
 ```{r}
@@ -40,35 +91,91 @@ biopharma <- companies %>%
 ```
 
 ```{r}
-simfinR_get_available_statements(378249, simfin_api)
-zbh <- simfinR_get_fin_statements(378249, simfin_api, years = 2021)
-```
+# set up data tables
+MANH_earnings <- readxl::read_excel("R_Working_Directory/tidymodeling/Financials/MANH Test.xlsx", 
+    sheet = "Quarterly Earnings")
+MANH_plus1 <- MANH_earnings
+MANH_minus1 <- MANH_earnings
+MANH_minus2 <- MANH_earnings
+MANH_minus3 <- MANH_earnings
 
+# add column to label dates
+MANH_earnings$catalyst <- 0
+MANH_plus1$catalyst <- 1
+MANH_minus1$catalyst <- -1
+MANH_minus2$catalyst <- -2
+MANH_minus3$catalyst <- -3
+
+# turn reportedDate to dates
+MANH_earnings$reportedDate <- as.Date(lubridate::ymd_hms(MANH_earnings$reportedDate))
+MANH_plus1$reportedDate <- MANH_plus1$reportedDate %>% as.Date.POSIXct() + 1
+MANH_minus1$reportedDate <- MANH_minus1$reportedDate %>% as.Date.POSIXct() - 1
+MANH_minus2$reportedDate <- MANH_minus2$reportedDate %>% as.Date.POSIXct() - 2
+MANH_minus3$reportedDate <- MANH_minus3$reportedDate %>% as.Date.POSIXct() - 3
+
+earnings <- rbind(MANH_earnings, MANH_plus1, MANH_minus1, MANH_minus2, MANH_minus3)
+earnings <- earnings %>%
+  arrange(reportedDate, desc = TRUE)
+```
 
 ```{r}
-# download stock price data
-tickers <- c("AMZN", "GOOG") # Amazon, Google
-prices <- sfa_get_prices(tickers)
+# get daily prices
+MANH_prices <- sfa_get_prices("MANH")
+
+# add difference and %change
+MANH_prices <- MANH_prices %>%
+  mutate(`difference` = adj_close - open, 
+         `%change` = difference/open*100)
 ```
 
 ```{r}
-# create plot
-ggplot(prices) +
-  aes(x = date, y = close, color = ticker) +
-  geom_line()
+# remove quarter end dates
+earnings <- earnings %>%
+  select(-MANH)
+
+#clean up price action table
+MANH_prices <- MANH_prices %>%
+  select(-c("simfin_id", "ticker", "currency", "common_shares_outstanding", "dividend"))
+
+# right join to keep prices
+earnings_df <- earnings %>%
+  left_join(MANH_prices, by = c("reportedDate" = "date")) %>%
+  drop_na()
+
+earnings_df %>%
+  ggplot() + 
+  aes(x = `reportedDate`, y = `adj_close`, color = `catalyst`) + 
+  geom_point()
+
+earnings_df %>%
+  ggplot() + 
+  aes(x = `reportedDate`, y = `surprisePercentage`, color = `%change`) + 
+  geom_point()
 ```
 
 ```{r}
-company_info <- sfa_get_info(tickers)
+df2 <- df2 %>%
+  arrange(reportedDate, desc = TRUE)
+#need to subtract out prices sets. 
+# merge different earnings sets together first?
+
 ```
 
 ```{r}
-AMZN_CF <- sfa_get_statement(
-  ticker = "AMZN",
-  simfin_id = 62747,
-  "cf",
-  period = "fy",
-  fyear = c(2021, 2020)
-)
+df3 <- MANH_earnings %>%
+  left_join(MANH_prices, by = c("reportedDate" = "date")) %>%
+  drop_na()
 ```
+
+```{r}
+df4 <- MANH2 %>%
+  left_join(MANH_prices, by = c("reportedDate" = "date")) %>%
+  drop_na()
+```
+
+```{r}
+#assuming post
+df4$adj_close - df3$adj_close
+```
+
 
