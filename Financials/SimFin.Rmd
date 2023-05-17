@@ -15,8 +15,13 @@ getwd()
 
 ```{r}
 library(simfinapi)
+<<<<<<< Updated upstream
 library(alphavantager)
+=======
+library(simfinapi)
+>>>>>>> Stashed changes
 library(tidyverse)
+library(finreportr)
 ```
 
 ```{r}
@@ -31,6 +36,7 @@ sfa_set_cache_dir("/Users/eugenezhou/R_Working_Directory/tidymodeling/Financials
 ```
 
 ```{r}
+<<<<<<< Updated upstream
 #read in data tables
 
 companies <- read_delim("~/R_Working_Directory/tidymodeling/Financials/us-companies.csv", 
@@ -83,7 +89,15 @@ df %>%
 ```{r}
 companies <- sfa_get_entities("jRip1bOy0XLlxdAmke28qOWlQJ8wgoE7")
 info <- sfa_get_statement()
+=======
+companies <- sfa_get_entities("jRip1bOy0XLlxdAmke28qOWlQJ8wgoE7")
+>>>>>>> Stashed changes
 ```
+
+```{r}
+sfa_get_ref("industries")
+```
+
 
 ```{r}
 biopharma <- companies %>%

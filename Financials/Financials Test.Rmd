@@ -8,11 +8,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE, fig.width = 8, fig.height = 5)
 ```
 
-
-*This template offers an opinionated guide on how to structure a modeling analysis. Your individual modeling analysis may require you to add to, subtract from, or otherwise change this structure, but consider this a general framework to start from. If you want to learn more about using tidymodels, check out our [Getting Started](https://www.tidymodels.org/start/) guide.*
-
-In this example analysis, let's fit a model to predict [the sex of penguins](https://allisonhorst.github.io/palmerpenguins/) from species and measurement information.
-
 ```{r}
 # Load libraries
 library(tidyverse)
