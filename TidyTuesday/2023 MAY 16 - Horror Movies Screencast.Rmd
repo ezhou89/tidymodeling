@@ -104,7 +104,7 @@ horror_embed %>%
   select(id, original_title, embeddings)
 ```
 
-Create a matrix where a column exists for every element of the OpenAI model
+Create a matrix where every row is a movie and every column is an OpenAI embedding
 
 ```{r}
 embeddings_mat <- matrix(
@@ -143,7 +143,9 @@ horror_movies_df %>%
   select(title, overview)
 ```
 
-## PCA 
+## PCA
+
+PC1 explains the most "variation" in the text
 
 ```{r}
 #identify first 32 principal components
@@ -153,12 +155,36 @@ set.seed(234)
 horror_pca <- irlba::prcomp_irlba(embeddings_mat, n = 32)
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+augmented_pca <- as_tibble(horror_pca$x) %>%
+  bind_cols(horror_movies_df)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+### PC Plots
+
+Plot principal components
+
+```{r pressure}
+augmented_pca %>%
+  #PC1 vs PC2 colored by vote average
+  ggplot(aes(x = PC1, y = PC2, color = vote_average)) + 
+  geom_point(size = 1.2, alpha = 0.8) + 
+  scale_color_viridis_c()
+```
+
+We observe that vote is unrelated to text. Movie description does not influence ratings.
+
+```{r}
+#make plot interactive
+library(plotly)
+
+#assign previously constructed plot to variable p
+p <- augmented_pca %>%
+  #PC1 vs PC2 colored by vote average
+  ggplot(aes(x = PC1, y = PC2, color = vote_average)) + 
+  geom_point(size = 1.2, alpha = 0.8) + 
+  scale_color_viridis_c()
+
+#run in ggplotly function to explore
+ggplotly(p, tooltip = "text")
+```
