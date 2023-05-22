@@ -9,10 +9,6 @@ output:
 ```{r setup, include=FALSE}
 
 knitr::opts_chunk$set(echo = TRUE)
-
-
-  git config --global user.email "you@example.com"
-  git config --global user.name "Your Name"
 ```
 
 ------------------------------------------------------------------------
@@ -189,20 +185,125 @@ tornadoes %>%
 
 ```
 
-It looks like Texas, Florida, and Oklahoma are the three states with the most tornadoes (a little surprising that Florida gets tornadoes in addition to hurricanes).
-
-## Can we model
+It looks like Texas, Florida, and Oklahoma are the three states with the most tornadoes (a little surprising that Florida gets tornadoes in addition to hurricanes). What about the states with the tornadoes of the greatest magnitude?
 
 ```{r}
-#df4
+tornadoes %>%
+  group_by(st) %>%
+  summarise(mean(mag),
+            n()) %>%
+  #clean up variable names 
+  transmute(`State` = st, 
+         `Avg Magnitude` = `mean(mag)`,
+            `No. of Tornadoes` = `n()`) %>%
+  arrange(-`Avg Magnitude`)
+```
+
+It looks like Arkansas, Oklahoma, and South Dakota have tornadoes of the greatest magnitude, on average.
+
+## Can we model?
+
+As shown in the data earlier, we understand the strength of a tornado will have an affect on other variables in this data, such as property damage and injuries. From here, we will be following along with the steps used in [Julia Silge's screencast](#0), building a
+
+```{r, message=FALSE}
+# Load tidymodels package
+library(tidymodels)
+```
+
+Let's set the data budgent by splitting the data for training and testing.
+
+```{r}
+# Set seed
+set.seed(123)
+
+# Stratify data by magnitude to ensure that higher magnitude tornadoes with lower occurence are still in the training and testing data splits
+
+tornado_split <- tornadoes %>%
+  initial_split(strata = mag)
+
+# Create a training and testing set of data
+
+tornado_train <- training(tornado_split)
+tornado_test <- testing(tornado_split)
+```
+
+Let's create some cross-validation re-samples.
+
+```{r}
+# Set the seed
+set.seed(234)
+
+# Create 10 mini samples for feature engineering and model tuning when selecting optimal model
+
+tornado_folds <- vfold_cv(tornado_train, strata = mag)
+tornado_folds
 
 ```
 
 ```{r}
-#df5
+# Load embed package for the glm recipe function
+library(embed)
+
+
+# Supervised feature engineering using step_lencode_glm
+tornado_recipe <- 
+  recipe(mag ~ date + st + inj + len + wid, data = tornado_train) %>%
+  # Encode by state and set outcome as magnitude. maps the state to the outcome
+  step_lencode_glm(st, outcome = vars(mag)) %>%
+  # Use month and year as features due to seasonality of tornadoes
+  step_date(date, features = c("month", "year"), keep_original_cols = FALSE) %>%
+  # dummy variable for all remaining categorical variables
+  step_dummy(all_nominal_predictors())
+  
+tornado_recipe
+
 ```
 
-## 
+```{r}
+# Learn which transformations need to occur from training data 
+prep(tornado_recipe) %>% bake(new_data = NULL) %>%
+  glimpse()
+```
+
+Now that we have prepared the data, let's build a model.
+
+```{r}
+# Use xgboost model because we know variables within this large data set are correlated with each other
+
+xgb_spec <- 
+  boost_tree(
+    trees = tune(), 
+    min_n = tune(), 
+    mtry = tune(), 
+    learn_rate = 0.01
+  ) %>%
+  set_engine("xgboost") %>%
+  set_mode("regression") 
+
+# Create the XGBoost workflow
+xgb_wf <- workflow(tornado_recipe, xgb_spec)
+  
+```
+
+Let's tune the model
+
+```{r}
+# Load the finetune package
+library(finetune)
+doParallel::registerDoParallel()
+
+# Set seed for reproducibility
+set.seed(345)
+
+# Try all hyperparameter combinations
+# Use an ANOVA model to gauge different model hyperparameters
+xgb_rs <- tune_race_anova(
+  xgb_wf, 
+  resamples = tornado_folds, 
+  grid = 15, 
+  control = control_race(verbose_elim = TRUE)
+)
+```
 
 ```{r, echo=FALSE, include=FALSE, message=FALSE}
 # Save image
