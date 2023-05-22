@@ -2,8 +2,8 @@
 title: "2023 MAY 19 - Tornadoes in the US"
 date: '2023-05-19'
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -44,7 +44,7 @@ This week's data comes from the [Severe Weather Maps, Graphics, and Data Page](h
 The following are the included variables:
 
 | **Variable** | **Class** | **Description**                                                                                                                                                                      |
-|--------------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|----------|----------|-----------------------------------------------------|
 | om           | integer   | Tornado number. Effectively an ID for this tornado in this year.                                                                                                                     |
 | yr           | integer   | Year, 1950-2022.                                                                                                                                                                     |
 | mo           | integer   | Month, 1-12.                                                                                                                                                                         |
@@ -203,14 +203,14 @@ It looks like Arkansas, Oklahoma, and South Dakota have tornadoes of the greates
 
 ## Can we model?
 
-As shown in the data earlier, we understand the strength of a tornado will have an affect on other variables in this data, such as property damage and injuries. From here, we will be following along with the steps used in [Julia Silge's screencast](#0), building a
+As shown in the data earlier, we understand the strength of a tornado will have an affect on other variables in this data, such as property damage and injuries. From here, we will be following along with the steps used in [Julia Silge's screencast](#0), building a predictive model using XGBoost (although the pre-processed data will be slightly different)
 
 ```{r, message=FALSE}
 # Load tidymodels package
 library(tidymodels)
 ```
 
-Let's set the data budgent by splitting the data for training and testing.
+### Let's set the data budgent by splitting the data for training and testing.
 
 ```{r}
 # Set seed
@@ -227,7 +227,7 @@ tornado_train <- training(tornado_split)
 tornado_test <- testing(tornado_split)
 ```
 
-Let's create some cross-validation re-samples.
+### Let's create some cross-validation re-samples.
 
 ```{r}
 # Set the seed
@@ -265,7 +265,7 @@ prep(tornado_recipe) %>% bake(new_data = NULL) %>%
   glimpse()
 ```
 
-Now that we have prepared the data, let's build a model.
+### Now that we have prepared the data, let's build a model.
 
 ```{r}
 # Use xgboost model because we know variables within this large data set are correlated with each other
@@ -285,24 +285,101 @@ xgb_wf <- workflow(tornado_recipe, xgb_spec)
   
 ```
 
-Let's tune the model
+### Let's tune the model
 
 ```{r}
 # Load the finetune package
 library(finetune)
 doParallel::registerDoParallel()
 
-# Set seed for reproducibility
+# Set seed for model reproducibility
 set.seed(345)
 
 # Try all hyperparameter combinations
 # Use an ANOVA model to gauge different model hyperparameters
 xgb_rs <- tune_race_anova(
+  #will use an ANOVA to elminate tested models using cross-validation resamples
   xgb_wf, 
   resamples = tornado_folds, 
   grid = 15, 
   control = control_race(verbose_elim = TRUE)
 )
+
+# Check out the racing results
+xgb_rs
+```
+
+### Evaluate the model
+
+```{r}
+# Check out best resulting model
+collect_metrics(xgb_rs)
+```
+
+```{r}
+# Check out tested hyperparameters and elimninated models
+plot_race(xgb_rs)
+```
+
+```{r}
+# Set and finalize the parameters
+tornado_fit <- 
+  xgb_wf %>%
+  # Hyperparameters no longer tunable 
+  finalize_workflow(select_best(xgb_rs, "rmse")) %>%
+  # Fits to training data and then once to testing data
+  last_fit(tornado_split)
+
+tornado_fit
+```
+
+```{r}
+# Metrics collected from testing data
+# Should indicate no overfitting of model to training data
+collect_metrics(tornado_fit)
+```
+
+### Does our model predict tornado magnitude? 
+
+```{r}
+# 
+collect_predictions(tornado_fit) %>%
+  ggplot(aes(.pred)) + 
+  geom_histogram()
+```
+
+```{r}
+collect_predictions(tornado_fit) %>%
+  mutate(mag = as_factor(mag)) %>%
+  ggplot(aes(x = mag, y = .pred, fill = mag)) + 
+  geom_boxplot(alpha = 0.6, show.legend = FALSE) + 
+  labs(title = "Predicting Tornado Magnitude", 
+       x = "Actual Magnitude", 
+       y = "Predicted Magnitude")
+```
+
+We see from this data that we have **over-predicted** the severity of tornadoes at the lower end of the spectrum. Next, let's see which variables were determined to be the most important with our xgboost model.
+
+```{r}
+# Load the vip library
+library(vip)
+
+extract_workflow(tornado_fit) %>%
+  extract_fit_parsnip() %>%
+  vip(num_features = 10)
+```
+
+We see that injury, length, year, width, and state were most predictive for magnitude. This should make sense as the variables were already perceived to be correlated, although we may want to separate out variables like injury in the future, as injuries would be measured after a tornado and not before.
+
+### Deploy the model
+
+```{r}
+library(vetiver)
+
+v <- extract_workflow(tornado_fit) %>%
+  vetiver_model("tornado-xgb")
+
+v
 ```
 
 ```{r, echo=FALSE, include=FALSE, message=FALSE}
@@ -319,5 +396,3 @@ image %>% ggsave(
 1.  Further explore the price outliers where only 1 state was affected by the tornado.
 
 2.  Map visualization of tornado damage
-
-3.  Predictive model of tornado damage
