@@ -25,7 +25,7 @@ library(tidytuesdayR)
 ```{r, message=FALSE}
 # Download the weekly data and make available in the tt object.
 # Using the last_tuesday function gives us the latest TidyTuesday data from today's date
-tues <- last_tuesday("2023-05-19")
+tues <- last_tuesday()
 tt <- tt_load(tues)
 ```
 
@@ -36,49 +36,68 @@ tt
 
 *\
 \
-This week's data comes from the [Severe Weather Maps, Graphics, and Data Page](https://www.spc.noaa.gov/wcm/#data) of the NOAA's National Weather Service Storm Prediction Center.*
+This week's data comes from the* [2018 Central Park Squirrel Census](https://data.cityofnewyork.us/Environment/2018-Central-Park-Squirrel-Census-Squirrel-Data/vfnx-vebw).
+
+[The Squirrel Census](https://www.thesquirrelcensus.com/) is a multimedia science, design, and storytelling project focusing on the Eastern gray (Sciurus carolinensis). They count squirrels and present their findings to the public. The dataset contains squirrel data for each of the 3,023 sightings, including location coordinates, age, primary and secondary fur color, elevation, activities, communications, and interactions between squirrels and with humans.
 
 *\
 \
-The following are the included variables:*
+*The following are the included variables:
 
-| ***Variable*** | ***Class*** | ***Description***                                                                                                                                                                      |
-|-------------|-------------|----------------------------------------------|
-| *om*           | *integer*   | *Tornado number. Effectively an ID for this tornado in this year.*                                                                                                                     |
-| *yr*           | *integer*   | *Year, 1950-2022.*                                                                                                                                                                     |
-| *mo*           | *integer*   | *Month, 1-12.*                                                                                                                                                                         |
-| *dy*           | *integer*   | *Day of the month, 1-31.*                                                                                                                                                              |
-| *date*         | *date*      | *Date.*                                                                                                                                                                                |
-| *time*         | *time*      | *Time.*                                                                                                                                                                                |
-| *tz*           | *character* | [*Canonical tz database timezone*](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)*.*                                                                                    |
-| *datetime_utc* | *datetime*  | *Date and time normalized to UTC.*                                                                                                                                                     |
-| *st*           | *character* | *Two-letter postal abbreviation for the state (DC = Washington, DC; PR = Puerto Rico; VI = Virgin Islands).*                                                                           |
-| *stf*          | *integer*   | *State FIPS (Federal Information Processing Standards) number.*                                                                                                                        |
-| *mag*          | *integer*   | *Magnitude on the F scale (EF beginning in 2007). Some of these values are estimated (see fc).*                                                                                        |
-| *inj*          | *integer*   | *Number of injuries. When summing for state totals, use sn == 1 (see below).*                                                                                                          |
-| *fat*          | *integer*   | *Number of fatalities. When summing for state totals, use sn == 1 (see below).*                                                                                                        |
-| *loss*         | *double*    | *Estimated property loss information in dollars. Prior to 1996, values were grouped into ranges. The reported number for such years is the maximum of its range.*                      |
-| *slat*         | *double*    | *Starting latitude in decimal degrees.*                                                                                                                                                |
-| *slon*         | *double*    | *Starting longitude in decimal degrees.*                                                                                                                                               |
-| *elat*         | *double*    | *Ending latitude in decimal degrees.*                                                                                                                                                  |
-| *elon*         | *double*    | *Ending longitude in decimal degrees.*                                                                                                                                                 |
-| *len*          | *double*    | *Length in miles.*                                                                                                                                                                     |
-| *wid*          | *double*    | *Width in yards.*                                                                                                                                                                      |
-| *ns*           | *integer*   | *Number of states affected by this tornado. 1, 2, or 3.*                                                                                                                               |
-| *sn*           | *integer*   | *State number for this row. 1 means the row contains the entire track information for this state, 0 means there is at least one more entry for this state for this tornado (om + yr).* |
-| *f1*           | *integer*   | *FIPS code for the 1st county.*                                                                                                                                                        |
-| *f2*           | *integer*   | *FIPS code for the 2nd county.*                                                                                                                                                        |
-| *f3*           | *integer*   | *FIPS code for the 3rd county.*                                                                                                                                                        |
-| *f4*           | *integer*   | *FIPS code for the 4th county.*                                                                                                                                                        |
-| *fc*           | *logical*   | *Was the mag column estimated?*                                                                                                                                                        |
+| Variable                                   | Class     | Description                                                                                                                      |
+|--------------------------------------------|-----------|----------------------------------------------------------------------------------------------------------------------------------|
+| X                                          | double    | Longitude coordinate for squirrel sighting point                                                                                 |
+| Y                                          | double    | Latitude coordinate for squirrel sighting point                                                                                  |
+| Unique Squirrel ID                         | character | Identification tag for each squirrel sightings. The tag                                                                          
+                                                          is comprised of "Hectare ID" + "Shift" + "Date" + "Hectare Squirrel                                                               
+                                                          Number."                                                                                                                          |
+| Hectare                                    | character | ID tag, which is derived from the hectare grid used to                                                                           
+                                                          divide and count the park area. One axis that runs predominantly                                                                  
+                                                          north-to-south is numerical (1-42), and the axis that runs predominantly                                                          
+                                                          east-to-west is roman characters (A-I).                                                                                           |
+| Shift                                      | character | Value is either "AM" or "PM," to communicate whether or not the sighting session occurred in the morning or late afternoon.      |
+| Date                                       | double    | Concatenation of the sighting session day and month.                                                                             |
+| Age                                        | character | Value is either "Adult" or "Juvenile."                                                                                           |
+| Primary Fur Color                          | character | Primary Fur Color - value is either "Gray," "Cinnamon" or "Black."                                                               |
+| Highlight Fur Color                        | character | Discrete value or string values comprised of "Gray," "Cinnamon" or "Black."                                                      |
+| Combination of Primary and Highlight Color | character | A combination of the previous two columns; this column gives the total permutations of primary and highlight colors observed.    |
+| Color notes                                | character | Sighters occasionally added commentary on the squirrel fur conditions. These notes are provided here.                            |
+| Location                                   | character | Value is either "Ground Plane" or "Above Ground."                                                                                
+                                                          Sighters were instructed to indicate the location of where the squirrel                                                           
+                                                          was when first sighted.                                                                                                           |
+| Above Ground Sighter Measurement           | character | For squirrel sightings on the ground plane, fields were populated with a value of \"FALSE.\"                                     |
+| Specific Location                          | character | Sighters occasionally added commentary on the squirrel location. These notes are provided here.                                  |
+| Running                                    | logical   | Squirrel was seen running.                                                                                                       |
+| Chasing                                    | logical   | Squirrel was seen chasing another squirrel.                                                                                      |
+| Climbing                                   | logical   | Squirrel was seen climbing a tree or other environmental landmark.                                                               |
+| Eating                                     | logical   | Squirrel was seen eating.                                                                                                        |
+| Foraging                                   | logical   | Squirrel was seen foraging for food.                                                                                             |
+| Other Activities                           | character | Other activities squirrels were observed doing.                                                                                  |
+| Kuks                                       | logical   | Squirrel was heard kukking, a chirpy vocal communication used for a variety of reasons.                                          |
+| Quaas                                      | logical   | Squirrel was heard quaaing, an elongated vocal communication which can indicate the presence of a ground predator such as a dog. |
+| Moans                                      | logical   | Squirrel was heard moaning, a high-pitched vocal                                                                                 
+                                                          communication which can indicate the presence of an air predator such as                                                          
+                                                          a hawk.                                                                                                                           |
+| Tail flags                                 | logical   | Squirrel was seen flagging its tail. Flagging is a                                                                               
+                                                          whipping motion used to exaggerate squirrel's size and confuse rivals or                                                          
+                                                          predators. Looks as if the squirrel is scribbling with tail into the                                                              
+                                                          air.                                                                                                                              |
+| Tail twitches                              | logical   | Squirrel was seen twitching its tail. Looks like a wave                                                                          
+                                                          running through the tail, like a breakdancer doing the arm wave. Often                                                            
+                                                          used to communicate interest, curiosity.                                                                                          |
+| Approaches                                 | logical   | Squirrel was seen approaching human, seeking food.                                                                               |
+| Indifferent                                | logical   | Squirrel was indifferent to human presence.                                                                                      |
+| Runs from                                  | logical   | Squirrel was seen running from humans, seeing them as a threat.                                                                  |
+| Other Interactions                         | character | Sighter notes on other types of interactions between squirrels and humans.                                                       |
+| Lat/Long                                   | character | Latitude and longitude                                                                                                           |
 
-## \* Initial Thoughts and Questions\*
+## Initial Thoughts and Questions
 
-*Based on the variables provided, there are likely a few interesting relationships to explore with regards to recorded tornadoes, including magnitudes, number of states affected, estimated property loss, and number of injuries and fatalities. Furthermore, because climate change is a pressing concern for many, how has the severity of tornadoes changed over the years?*
+Based on the variables provided, there are likely a few interesting relationships to explore with regards to recorded tornadoes, including magnitudes, number of states affected, estimated property loss, and number of injuries and fatalities. Furthermore, because climate change is a pressing concern for many, how has the severity of tornadoes changed over the years?
 
-## \* Data Wrangling and Exploratory Data Analysis\*
+## Data Wrangling and Exploratory Data Analysis
 
-*Let's create a series of smaller data frames to explore whether these variables have some sort of relationship that we can further explore*
+Let's create a series of smaller data frames to explore whether these variables have some sort of relationship that we can further explore
 
 ```{r Extract}
 # Extract tornados.csv from tt 
@@ -94,9 +113,9 @@ df1 <- tornados %>%
 df1 %>% skimr::skim()
 ```
 
-*\
 \
-Out of 68,693 rows, there are 27,170 rows where values for loss are missing. Drop these rows from this first data frame.*
+\
+Out of 68,693 rows, there are 27,170 rows where values for loss are missing. Drop these rows from this first data frame.
 
 ```{r DF1 Clean}
 df1 <- df1 %>% 
@@ -107,9 +126,9 @@ tornados <- tornados %>%
   drop_na()
 ```
 
-*\
 \
-It makes sense that the amount of monetary damage a tornado incurs should increase with increasing magnitude. For this data frame, we can `group_by` and explore the number of tornados that occured at each magnitude, as well as the average damage cost and when a tornado at each magnitude last occurred.*
+\
+It makes sense that the amount of monetary damage a tornado incurs should increase with increasing magnitude. For this data frame, we can `group_by` and explore the number of tornados that occured at each magnitude, as well as the average damage cost and when a tornado at each magnitude last occurred.
 
 ```{r DF1 EDA}
 df1 %>%
@@ -119,9 +138,9 @@ df1 %>%
             `Last Occured` = last(yr))
 ```
 
-*\
 \
-Let's plot this first data frame by converting the magnitude to a factor, so we can graph the data as a boxplot. Use a log scale for the y-axis and set `notch = TRUE` to show separation between the IQR of each magnitude.*
+\
+Let's plot this first data frame by converting the magnitude to a factor, so we can graph the data as a boxplot. Use a log scale for the y-axis and set `notch = TRUE` to show separation between the IQR of each magnitude.
 
 ```{r Plot DF1}
 
@@ -194,7 +213,7 @@ image %>% ggsave(
 
 ```
 
-## *Future Work*
+## Future Work
 
 1.  Further explore the price outliers where only 1 state was affected by the tornado.
 
