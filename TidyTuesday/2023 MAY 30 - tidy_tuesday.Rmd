@@ -41,7 +41,7 @@ The data this week comes from the [Wikipedia List of the verified oldest people]
 ### The following are the included variables:
 
 | **Variable**                | **Class** | **Description**                                                                                                                           |
-|--------------------|----------------|------------------------------------|
+|--------------------|------------------|-----------------------------------|
 | rank                        | integer   | This person's overall rank by age.                                                                                                        |
 | name                        | character | The full name of this person.                                                                                                             |
 | birth_date                  | date      | This person's birth date.                                                                                                                 |
