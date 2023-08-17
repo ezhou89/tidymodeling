@@ -8,7 +8,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE, fig.width = 8, fig.height = 5)
 ```
 
-Look to see if there is a relationship between temperature and rate of cricket chirps per minute
+*Look to see if there is a relationship between temperature and rate of cricket chirps per minute*
 
 ```{r}
 # load tidyverse package
@@ -24,9 +24,8 @@ names(crickets)
 ```{r}
 # plot x = temp vs y = chirps
 
-crickets %>%
-  ggplot() +
-  aes(x = temp, y = rate, col = species) + 
+ggplot(crickets, 
+       aes(x = temp, y = rate, col = species)) + 
   geom_point() + 
   # add a linear model fit for each species of cricket
   geom_smooth(method = lm, se = FALSE) + 
@@ -59,7 +58,7 @@ interaction_fit <- lm(rate ~ (temp + species)^2, data = crickets)
 summary(interaction_fit)
 ```
 
-create diagnostic plots to assess model fit
+*create diagnostic plots to assess model fit*
 
 ```{r}
 # use par to place plots next to each other
@@ -73,7 +72,7 @@ plot(interaction_fit, which = 2)
 
 ```
 
-check if the inclusion term in the model is even necessary 
+*check if the inclusion term in the model is even necessary*
 
 ```{r}
 # fit a reduced model 
@@ -83,31 +82,22 @@ main_effect_fit <- lm(rate ~ temp + species, data = crickets)
 anova(main_effect_fit, interaction_fit)
 ```
 
-p-value = 0.2542
-indicates interaction term between variables is necessary
+*p-value = 0.2542 indicates interaction term between variables is necessary*
 
-use summary() to inspect coeffients for model
+*use summary() to inspect coeffients for model*
 
 ```{r}
 summary(main_effect_fit)
 ```
 
-chirp rate increases by 3.6 chirps per degree increase in temperature, p = 0.00858
-indicates strong statistical signifance
+*chirp rate increases by 3.6 chirps per degree increase in temperature, p = 0.00858 indicates strong statistical signifance*
 
-chirp rate is also shown to be significantly different between species, p = 6.27e-14
+*chirp rate is also shown to be significantly different between species, p = 6.27e-14*
 
-
-can use predict() to estimate chirp rate at a temperature not observed in the experiment
+*can use predict() to estimate chirp rate at a temperature not observed in the experiment*
 
 ```{r}
 new_values <- data.frame(species = "O. exclamationis", temp = 15:20)
 
 predict(main_effect_fit, new_values)
 ```
-
-
-
-
-
-

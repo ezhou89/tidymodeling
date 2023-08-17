@@ -30,6 +30,7 @@ ames %>%
   aes(x = Sale_Price) + 
   geom_histogram(bins = 50, col = "white")
 ```
+
 data is right skewed
 
 ```{r}
@@ -56,12 +57,3 @@ ames %>%
   coord_map() + 
   theme(legend.position = "bottom")
 ```
-
-
-
-
-
-
-
-
-
